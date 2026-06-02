@@ -1,0 +1,36 @@
+## Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Build output
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+ARM/
+ARM64/
+
+## .NET
+project.assets.json
+project.nuget.cache
+*.nupkg
+*.snupkg
+*.pdb
+*.ilk
+*.log
+
+## Rider / ReSharper
+.idea/
+_ReSharper*/
+*.DotSettings.user
+
+## OS/editor noise
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
