@@ -104,6 +104,10 @@ dotnet publish 小工具集合/小工具集合.csproj `
 本工具不保存输入内容、密钥或执行历史。  
 需要联网的工具会把当前输入发送到对应公开接口；如果不希望发送内容，请保持工具为本地模式。
 
+## License
+
+MIT License. See [LICENSE](LICENSE).
+
 ## Author
 
 Made by **LCMasterSpark**.
