@@ -72,6 +72,7 @@ public static class ToolCatalog
                 NetworkText("cookieFormat", "Cookie 格式化", "将 Cookie 字符串拆分为逐行键值列表。", "format", "格式化"),
                 Ping(),
                 HostsReset(),
+                ProxyReset(),
                 NetworkReset()
             ]
         },
@@ -319,6 +320,19 @@ public static class ToolCatalog
         InputWatermark = "无需输入；点击执行后会弹出管理员权限确认。",
         RequiresInput = false,
         Operations = [new() { Id = "reset", Name = "执行修复命令" }],
+        Parameters = [new() { Id = "confirm", Name = "确认执行", Kind = ToolParameterKind.CheckBox }]
+    };
+
+    private static ToolDefinition ProxyReset() => new()
+    {
+        Id = "proxyReset",
+        Name = "重置代理",
+        GroupName = "网络与接口",
+        Description = "关闭当前用户系统代理并重置 WinHTTP 代理。",
+        Warning = "危险操作：会清除当前用户代理服务器和 PAC 自动配置地址，可能影响正在使用代理的软件。",
+        InputWatermark = "无需输入；点击执行后重置系统代理设置。",
+        RequiresInput = false,
+        Operations = [new() { Id = "reset", Name = "清除代理设置" }],
         Parameters = [new() { Id = "confirm", Name = "确认执行", Kind = ToolParameterKind.CheckBox }]
     };
 

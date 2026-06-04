@@ -5,6 +5,8 @@ using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Net.NetworkInformation;
+using System.Runtime.InteropServices;
+using System.Security;
 using System.Security.Cryptography;
 using System.Security.Principal;
 using System.Text;
@@ -16,6 +18,7 @@ using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.PixelFormats;
+using Microsoft.Win32;
 using 小工具集合.Models;
 
 namespace 小工具集合.Services;
@@ -47,6 +50,8 @@ public sealed class ToolExecutionContext(Func<bool> isPaused)
 /// </summary>
 public sealed class ToolProcessor : IToolProcessor
 {
+    private const int InternetOptionRefresh = 37;
+    private const int InternetOptionSettingsChanged = 39;
     // AES-GCM 载荷格式：前缀 + salt + nonce + tag + 密文。
     // 前缀用于区分文本加密和文件加密格式。
     private const int AesSaltSize = 16;
@@ -87,6 +92,7 @@ public sealed class ToolProcessor : IToolProcessor
                 "cookieFormat" => FormatCookies(request.Input),
                 "ping" => PingHost(request),
                 "hostsReset" => ResetHosts(request),
+                "proxyReset" => ResetProxy(request),
                 "networkReset" => ResetNetwork(request),
                 "uuid" => Guid.NewGuid().ToString("D"),
                 "timestamp" => Timestamp(request),
@@ -674,6 +680,48 @@ public sealed class ToolProcessor : IToolProcessor
         return RunProcess("cmd.exe", "/c " + Quote(commands)) + Environment.NewLine + "网络修复命令已执行，可能需要重启电脑。";
     }
 
+    private static string ResetProxy(ToolRequest request)
+    {
+        EnsureConfirmed(request);
+        var builder = new StringBuilder();
+
+        try
+        {
+            using RegistryKey internetSettings = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Internet Settings", true)
+                ?? throw new InvalidOperationException("无法打开当前用户代理设置注册表项。");
+            internetSettings.SetValue("ProxyEnable", 0, RegistryValueKind.DWord);
+            DeleteRegistryValueIfExists(internetSettings, "ProxyServer");
+            DeleteRegistryValueIfExists(internetSettings, "ProxyOverride");
+            DeleteRegistryValueIfExists(internetSettings, "AutoConfigURL");
+            builder.AppendLine("[成功] 已关闭当前用户系统代理，并清除代理服务器/PAC 地址。");
+
+            NotifyInternetSettingsChanged();
+            builder.AppendLine("[成功] 已通知系统刷新代理设置。");
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or SecurityException or InvalidOperationException)
+        {
+            builder.AppendLine($"[失败] 当前用户系统代理清理失败：{ex.Message}");
+        }
+
+        try
+        {
+            string output = RunProcess("netsh", "winhttp reset proxy");
+            builder.AppendLine("[成功] WinHTTP 代理已重置。");
+            if (!string.IsNullOrWhiteSpace(output))
+            {
+                builder.AppendLine(output.Trim());
+            }
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or Win32Exception or IOException)
+        {
+            builder.AppendLine($"[失败] WinHTTP 代理重置失败：{ex.Message}");
+        }
+
+        builder.AppendLine();
+        builder.AppendLine("说明：部分应用会维护自己的代理配置，必要时请在对应应用内单独关闭。");
+        return builder.ToString();
+    }
+
     private static string Timestamp(ToolRequest request)
     {
         if (request.OperationId == "now")
@@ -929,6 +977,23 @@ public sealed class ToolProcessor : IToolProcessor
                # ::1             localhost
                """;
     }
+
+    private static void DeleteRegistryValueIfExists(RegistryKey key, string name)
+    {
+        if (key.GetValue(name) is not null)
+        {
+            key.DeleteValue(name, false);
+        }
+    }
+
+    private static void NotifyInternetSettingsChanged()
+    {
+        InternetSetOption(IntPtr.Zero, InternetOptionSettingsChanged, IntPtr.Zero, 0);
+        InternetSetOption(IntPtr.Zero, InternetOptionRefresh, IntPtr.Zero, 0);
+    }
+
+    [DllImport("wininet.dll", SetLastError = true)]
+    private static extern bool InternetSetOption(IntPtr hInternet, int dwOption, IntPtr lpBuffer, int dwBufferLength);
 
     private static string GetRequiredParameter(ToolRequest request, string id, string message)
     {
