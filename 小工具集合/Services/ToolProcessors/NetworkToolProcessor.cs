@@ -1,3 +1,4 @@
+// 文件作用：实现 HTTP、URL、端口、DNS、IP、curl 和网络修复类工具。
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;

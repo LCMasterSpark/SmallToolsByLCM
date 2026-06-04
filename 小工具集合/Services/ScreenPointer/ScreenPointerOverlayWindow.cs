@@ -1,3 +1,4 @@
+// 文件作用：绘制点击穿透的置顶准星 overlay，并按设置定位到目标屏幕。
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows;

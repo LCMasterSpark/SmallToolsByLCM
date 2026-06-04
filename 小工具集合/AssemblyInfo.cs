@@ -1,3 +1,4 @@
+// 文件作用：声明 WPF 主题资源查找相关的程序集元数据。
 using System.Windows;
 
 [assembly: ThemeInfo(

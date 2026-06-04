@@ -1,3 +1,5 @@
+// 文件作用：承接主窗口代码隐藏逻辑、动态参数控件和互动工具宿主。
+// Copyright (c) 2026 LCMasterSpark. Licensed under the MIT License.
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Windows;
@@ -116,6 +118,7 @@ public partial class MainWindow : MetroWindow
             "powerChecker" => new PowerCheckerControl(),
             "timePointer" => new TimePointerControl(),
             "minesweeper" => new MinesweeperControl(),
+            "qrCode" => new QrCodeControl(),
             "screenPointer" => new ScreenPointerControl(),
             _ => null
         };

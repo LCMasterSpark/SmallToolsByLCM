@@ -1,3 +1,4 @@
+// 文件作用：实现趣味实验室的离线随机、文本整活和程序员梗工具。
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;

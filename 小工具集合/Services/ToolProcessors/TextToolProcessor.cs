@@ -1,3 +1,4 @@
+// 文件作用：实现 JSON、XML、JWT、正则测试和文本 Diff 工具。
 using System.Globalization;
 using System.IO;
 using System.Text;

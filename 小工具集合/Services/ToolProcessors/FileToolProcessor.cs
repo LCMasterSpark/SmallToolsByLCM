@@ -1,3 +1,4 @@
+// 文件作用：实现文件加密、媒体转换、文件哈希等批处理工具。
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;

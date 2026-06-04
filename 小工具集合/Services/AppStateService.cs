@@ -1,3 +1,4 @@
+// 文件作用：提供统一 app-state.json 的读取、分段更新和容错回退。
 using System.IO;
 using System.Text.Json;
 using System.Text.Json.Serialization;

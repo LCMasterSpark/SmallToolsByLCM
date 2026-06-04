@@ -1,3 +1,4 @@
+// 文件作用：提供 ToolProcessor partial 之间复用的参数、进程和文本辅助方法。
 using System.Globalization;
 using System.IO;
 using 小工具集合.Models;

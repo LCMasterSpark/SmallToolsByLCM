@@ -1,3 +1,4 @@
+// 文件作用：通过统一状态文件保存和读取屏幕指针配置，并兼容旧配置。
 using System.IO;
 using System.Text.Json;
 using 小工具集合.Services;

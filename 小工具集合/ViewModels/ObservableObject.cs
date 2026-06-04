@@ -1,3 +1,4 @@
+// 文件作用：提供 ViewModel 属性变更通知和同步/异步命令基础设施。
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;

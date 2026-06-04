@@ -1,3 +1,4 @@
+// 文件作用：工具执行调度入口，把工具 Id 分派到对应 partial 处理器。
 using System.ComponentModel;
 using System.IO;
 using System.Net;

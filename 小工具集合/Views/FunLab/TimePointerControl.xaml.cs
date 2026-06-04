@@ -1,3 +1,4 @@
+// 文件作用：实现指向任务栏时间区域的点击穿透箭头 overlay。
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Automation;

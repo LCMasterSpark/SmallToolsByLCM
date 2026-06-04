@@ -1,3 +1,4 @@
+// 文件作用：实现 UUID、时间戳、密码生成等杂项生成工具。
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;

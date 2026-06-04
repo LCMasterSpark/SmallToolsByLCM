@@ -1,3 +1,4 @@
+// 文件作用：实现扫雷核心棋盘规则、布雷、揭格、标记和胜负判断。
 namespace 小工具集合.Services.FunLab;
 
 public sealed class MinesweeperGame

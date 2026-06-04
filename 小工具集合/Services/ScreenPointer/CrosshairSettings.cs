@@ -1,3 +1,4 @@
+// 文件作用：定义屏幕指针准星的全局配置和各样式参数。
 using System.Windows.Media;
 
 namespace 小工具集合.Services.ScreenPointer;

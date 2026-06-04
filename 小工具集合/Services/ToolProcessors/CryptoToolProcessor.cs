@@ -1,3 +1,4 @@
+// 文件作用：实现哈希、HMAC、AES、RSA 和 Encode 加密类工具。
 using System.Security.Cryptography;
 using System.Text;
 using 小工具集合.Models;

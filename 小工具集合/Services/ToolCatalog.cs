@@ -1,3 +1,4 @@
+// 文件作用：集中注册所有工具分组、工具元数据、操作和参数定义。
 using 小工具集合.Models;
 
 namespace 小工具集合.Services;
@@ -117,6 +118,7 @@ public static class ToolCatalog
                     ]
                 },
                 PasswordGenerator(),
+                QrCode(),
                 ScreenPointer()
             ]
         },
@@ -561,6 +563,17 @@ public static class ToolCatalog
         RequiresInput = false,
         Operations = [new() { Id = "interactive", Name = "互动" }],
         InteractiveViewKey = "screenPointer"
+    };
+
+    private static ToolDefinition QrCode() => new()
+    {
+        Id = "qrCode",
+        Name = "生成 QR Code",
+        GroupName = "生成工具",
+        Description = "把文本或 URL 生成可预览、可复制、可保存的二维码图片。",
+        RequiresInput = false,
+        Operations = [new() { Id = "interactive", Name = "互动" }],
+        InteractiveViewKey = "qrCode"
     };
 
     private static ToolDefinition ChoicePicker() => new()

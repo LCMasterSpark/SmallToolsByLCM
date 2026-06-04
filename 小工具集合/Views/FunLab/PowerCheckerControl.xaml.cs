@@ -1,3 +1,4 @@
+// 文件作用：实现电量检测器的进度动画、状态文案和生命周期。
 using System.Windows;
 using System.Windows.Controls;
 

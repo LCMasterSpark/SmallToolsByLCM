@@ -1,3 +1,4 @@
+// 文件作用：承载主窗口状态、工具选择、搜索、命令执行和偏好保存。
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using 小工具集合.Models;

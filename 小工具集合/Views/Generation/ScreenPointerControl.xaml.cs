@@ -1,3 +1,4 @@
+// 文件作用：连接屏幕指针配置 UI、准星 overlay 和统一状态保存。
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;

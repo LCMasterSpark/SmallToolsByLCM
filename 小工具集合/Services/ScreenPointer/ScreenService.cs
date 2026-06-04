@@ -1,3 +1,4 @@
+// 文件作用：枚举 Windows 显示器并按设备名选择目标屏幕。
 using System.Windows;
 using Forms = System.Windows.Forms;
 

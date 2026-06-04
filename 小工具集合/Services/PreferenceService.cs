@@ -1,3 +1,4 @@
+// 文件作用：持久化主窗口偏好，并兼容迁移旧 preferences.json。
 using System.IO;
 using System.Text.Json;
 

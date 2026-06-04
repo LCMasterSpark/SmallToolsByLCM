@@ -1,3 +1,4 @@
+// 文件作用：实现图片格式转换和压缩处理。
 using System.IO;
 using System.Text;
 using SixLabors.ImageSharp;

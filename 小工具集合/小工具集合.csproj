@@ -1,4 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<!-- 文件作用：配置小工具集合 WPF 项目的目标框架、版本、依赖和发布属性。 -->
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -8,17 +9,20 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <NuGetAudit>false</NuGetAudit>
-    <Version>2.3.0</Version>
-    <AssemblyVersion>2.3.0.0</AssemblyVersion>
-    <FileVersion>2.3.0.0</FileVersion>
-    <InformationalVersion>2.3release</InformationalVersion>
+    <Version>2.8.0</Version>
+    <AssemblyVersion>2.8.0.0</AssemblyVersion>
+    <FileVersion>2.8.0.0</FileVersion>
+    <InformationalVersion>2.8rel</InformationalVersion>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="QRCoder" Version="1.8.0" />
+    <PackageReference Include="XamlAnimatedGif" Version="2.3.2" />
     <Using Remove="System.Drawing" />
     <Using Remove="System.Windows.Forms" />
     <Resource Include="Assets\AppIcon.ico" />
+    <Resource Include="Assets\Marisa.gif" />
     <PackageReference Include="MahApps.Metro" Version="2.4.11" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
   </ItemGroup>

@@ -1,3 +1,4 @@
+// 文件作用：定义扫雷按玩家名保存的战绩状态模型。
 namespace 小工具集合.Services.FunLab;
 
 public sealed class MinesweeperState

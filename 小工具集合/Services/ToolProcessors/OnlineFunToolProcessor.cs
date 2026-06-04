@@ -1,3 +1,4 @@
+// 文件作用：实现趣味实验室的联网一言、诗词、天气和 IP 信息小卡。
 using System.Globalization;
 using System.Net;
 using System.Net.Http;

@@ -1,3 +1,4 @@
+// 文件作用：连接扫雷 UI、游戏规则、计时器和玩家战绩保存。
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
