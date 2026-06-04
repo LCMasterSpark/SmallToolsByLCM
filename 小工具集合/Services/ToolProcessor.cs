@@ -48,7 +48,9 @@ public sealed partial class ToolProcessor : IToolProcessor
     private const string AesPackagePrefix = "AESG";
     private static readonly TimeSpan RegexTimeout = TimeSpan.FromSeconds(2);
     private static readonly TimeSpan DnsLookupTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan PortUsageTimeout = TimeSpan.FromSeconds(15);
     private static readonly TimeSpan PublicIpRequestTimeout = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan OnlineFunRequestTimeout = TimeSpan.FromSeconds(8);
     private static readonly HttpClient HttpClient = new() { Timeout = TimeSpan.FromSeconds(60) };
 
     public ToolResult Execute(ToolRequest request)
@@ -60,7 +62,13 @@ public sealed partial class ToolProcessor : IToolProcessor
             string output = request.ToolId switch
             {
                 "base64" => Base64(request),
-                "url" => request.OperationId == "encode" ? WebUtility.UrlEncode(request.Input) : WebUtility.UrlDecode(request.Input),
+                "url" => request.OperationId switch
+                {
+                    "encode" => WebUtility.UrlEncode(request.Input),
+                    "decode" => WebUtility.UrlDecode(request.Input),
+                    "analyze" => AnalyzeUrl(request.Input),
+                    _ => throw new NotSupportedException("暂不支持该 URL 操作。")
+                },
                 "html" => request.OperationId == "encode" ? WebUtility.HtmlEncode(request.Input) : WebUtility.HtmlDecode(request.Input),
                 "unicode" => UnicodeEscape(request),
                 "json" => Json(request),
@@ -86,6 +94,7 @@ public sealed partial class ToolProcessor : IToolProcessor
                 "cookieFormat" => FormatCookies(request.Input),
                 "ping" => PingHost(request),
                 "portCheck" => CheckPort(request),
+                "portUsage" => QueryPortUsage(request.Input),
                 "dnsLookup" => LookupDns(request),
                 "publicIp" => QueryPublicIp(),
                 "curlGenerator" => GenerateCurl(request),
@@ -95,6 +104,22 @@ public sealed partial class ToolProcessor : IToolProcessor
                 "uuid" => Guid.NewGuid().ToString("D"),
                 "timestamp" => Timestamp(request),
                 "passwordGenerator" => GeneratePasswords(request),
+                "choicePicker" => PickChoice(request),
+                "shuffleLines" => ShuffleLines(request),
+                "randomNumber" => GenerateRandomNumbers(request),
+                "diceRoller" => RollDice(request),
+                "reverseText" => ReverseFunText(request),
+                "emojiWrap" => WrapWithEmoji(request),
+                "mockingText" => MockText(request),
+                "zalgoText" => GlitchText(request),
+                "commitMessage" => GenerateCommitMessages(request),
+                "variableName" => GenerateVariableNames(request),
+                "fakeLog" => GenerateFakeLog(request),
+                "excuseGenerator" => GenerateExcuse(request),
+                "onlineHitokoto" => QueryOnlineHitokoto(request),
+                "onlinePoemLine" => QueryOnlinePoemLine(),
+                "weatherCard" => QueryWeatherCard(request.Input),
+                "ipInfoCard" => QueryIpInfoCard(request.Input),
                 _ => throw new NotSupportedException("暂不支持该工具。")
             };
 

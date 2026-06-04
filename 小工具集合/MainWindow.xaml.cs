@@ -2,6 +2,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using MahApps.Metro.Controls;
 using Microsoft.Win32;
 using 小工具集合.Models;
@@ -16,6 +17,15 @@ namespace 小工具集合;
 public partial class MainWindow : MetroWindow
 {
     private readonly MainWindowViewModel _viewModel;
+    private bool _isToolBrowserCollapsed;
+    private static readonly Brush GeneratedLabelBrush = new SolidColorBrush(Color.FromRgb(200, 200, 200));
+    private static readonly Brush GeneratedTextBrush = new SolidColorBrush(Color.FromRgb(241, 241, 241));
+    private static readonly Brush GeneratedMutedBrush = new SolidColorBrush(Color.FromRgb(150, 150, 150));
+    private static readonly Brush GeneratedInputBrush = new SolidColorBrush(Color.FromRgb(31, 31, 31));
+    private static readonly Brush GeneratedButtonBrush = new SolidColorBrush(Color.FromRgb(45, 45, 48));
+    private static readonly Brush GeneratedButtonHoverBrush = new SolidColorBrush(Color.FromRgb(62, 62, 66));
+    private static readonly Brush GeneratedBorderBrush = new SolidColorBrush(Color.FromRgb(63, 63, 70));
+    private static readonly Brush GeneratedSelectionBrush = new SolidColorBrush(Color.FromRgb(9, 71, 113));
 
     public MainWindow()
     {
@@ -48,8 +58,24 @@ public partial class MainWindow : MetroWindow
     {
         if (sender is Button { Tag: ToolGroup group })
         {
+            _viewModel.SearchText = string.Empty;
             _viewModel.SelectedGroup = group;
         }
+    }
+
+    private void ToolItemButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: ToolBrowserItem item })
+        {
+            _viewModel.SelectToolItem(item);
+        }
+    }
+
+    private void ToggleToolBrowserButton_Click(object sender, RoutedEventArgs e)
+    {
+        _isToolBrowserCollapsed = !_isToolBrowserCollapsed;
+        ToolBrowserPanel.Visibility = _isToolBrowserCollapsed ? Visibility.Collapsed : Visibility.Visible;
+        ToolBrowserColumn.Width = _isToolBrowserCollapsed ? new GridLength(0) : new GridLength(286);
     }
 
     private void CopyButton_Click(object sender, RoutedEventArgs e)
@@ -80,7 +106,7 @@ public partial class MainWindow : MetroWindow
             var block = new StackPanel
             {
                 Orientation = Orientation.Vertical,
-                Margin = new Thickness(0, 0, 18, 12)
+                Margin = new Thickness(0, 0, 0, 14)
             };
 
             block.Children.Add(new TextBlock
@@ -88,7 +114,7 @@ public partial class MainWindow : MetroWindow
                 Text = parameter.Definition.Name,
                 Margin = new Thickness(0, 0, 0, 6),
                 FontSize = 12.5,
-                Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(75, 85, 99))
+                Foreground = GeneratedLabelBrush
             });
 
             FrameworkElement input = parameter.Definition.Kind switch
@@ -115,10 +141,11 @@ public partial class MainWindow : MetroWindow
     {
         var textBox = new TextBox
         {
-            Width = 240,
-            Height = 34,
+            Width = 260,
+            Height = 30,
             Text = parameter.Value
         };
+        ApplyGeneratedTextBoxStyle(textBox);
         textBox.TextChanged += (_, _) => parameter.Value = textBox.Text;
         return textBox;
     }
@@ -127,9 +154,10 @@ public partial class MainWindow : MetroWindow
     {
         var passwordBox = new PasswordBox
         {
-            Width = 240,
-            Height = 34
+            Width = 260,
+            Height = 30
         };
+        ApplyGeneratedPasswordBoxStyle(passwordBox);
         passwordBox.PasswordChanged += (_, _) => parameter.Value = passwordBox.Password;
         return passwordBox;
     }
@@ -138,13 +166,14 @@ public partial class MainWindow : MetroWindow
     {
         var textBox = new TextBox
         {
-            Width = 420,
+            Width = 260,
             Height = 88,
             AcceptsReturn = true,
             TextWrapping = TextWrapping.Wrap,
             VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             Text = parameter.Value
         };
+        ApplyGeneratedTextBoxStyle(textBox);
         textBox.TextChanged += (_, _) => parameter.Value = textBox.Text;
         return textBox;
     }
@@ -153,11 +182,12 @@ public partial class MainWindow : MetroWindow
     {
         var comboBox = new ComboBox
         {
-            Width = 180,
-            Height = 34,
+            Width = 260,
+            Height = 30,
             ItemsSource = parameter.Definition.Options,
             SelectedItem = string.IsNullOrWhiteSpace(parameter.Value) ? parameter.Definition.DefaultValue : parameter.Value
         };
+        ApplyGeneratedComboBoxStyle(comboBox);
         comboBox.SelectionChanged += (_, _) => parameter.Value = comboBox.SelectedItem?.ToString() ?? string.Empty;
         parameter.Value = comboBox.SelectedItem?.ToString() ?? parameter.Value;
         return comboBox;
@@ -167,25 +197,27 @@ public partial class MainWindow : MetroWindow
     {
         var panel = new StackPanel
         {
-            Width = 520,
+            Width = 260,
             Orientation = Orientation.Vertical
         };
 
         var textBox = new TextBox
         {
-            Height = 32,
+            Height = 30,
             Text = parameter.Value
         };
+        ApplyGeneratedTextBoxStyle(textBox);
         textBox.TextChanged += (_, _) => parameter.Value = textBox.Text;
 
         var button = new Button
         {
             Content = "浏览",
-            Width = 120,
-            Height = 34,
+            Width = 92,
+            Height = 30,
             Margin = new Thickness(0, 8, 0, 0),
             HorizontalAlignment = HorizontalAlignment.Left
         };
+        ApplyGeneratedButtonStyle(button);
         button.Click += (_, _) =>
         {
             string? fileName = openFile ? PickInputFile() : PickOutputFile();
@@ -205,7 +237,7 @@ public partial class MainWindow : MetroWindow
     {
         var panel = new StackPanel
         {
-            Width = 520,
+            Width = 260,
             Orientation = Orientation.Vertical
         };
 
@@ -218,6 +250,7 @@ public partial class MainWindow : MetroWindow
             HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
             Text = parameter.Value
         };
+        ApplyGeneratedTextBoxStyle(textBox);
         textBox.TextChanged += (_, _) => parameter.Value = textBox.Text;
 
         var buttons = new StackPanel
@@ -227,6 +260,8 @@ public partial class MainWindow : MetroWindow
         };
         var addButton = new Button { Content = "添加文件", Width = 110, Height = 34, Margin = new Thickness(0, 0, 8, 0) };
         var clearButton = new Button { Content = "清空", Width = 76, Height = 34 };
+        ApplyGeneratedButtonStyle(addButton);
+        ApplyGeneratedButtonStyle(clearButton);
         addButton.Click += (_, _) =>
         {
             string[] files = PickMultipleFiles();
@@ -257,25 +292,27 @@ public partial class MainWindow : MetroWindow
     {
         var panel = new StackPanel
         {
-            Width = 520,
+            Width = 260,
             Orientation = Orientation.Vertical
         };
 
         var textBox = new TextBox
         {
-            Height = 32,
+            Height = 30,
             Text = parameter.Value
         };
+        ApplyGeneratedTextBoxStyle(textBox);
         textBox.TextChanged += (_, _) => parameter.Value = textBox.Text;
 
         var button = new Button
         {
             Content = "浏览目录",
-            Width = 120,
-            Height = 34,
+            Width = 104,
+            Height = 30,
             Margin = new Thickness(0, 8, 0, 0),
             HorizontalAlignment = HorizontalAlignment.Left
         };
+        ApplyGeneratedButtonStyle(button);
         button.Click += (_, _) =>
         {
             string? folder = PickFolder();
@@ -295,10 +332,11 @@ public partial class MainWindow : MetroWindow
     {
         var textBox = new TextBox
         {
-            Width = 92,
-            Height = 34,
+            Width = 96,
+            Height = 30,
             Text = string.IsNullOrWhiteSpace(parameter.Value) ? parameter.Definition.DefaultValue : parameter.Value
         };
+        ApplyGeneratedTextBoxStyle(textBox);
         parameter.Value = textBox.Text;
         textBox.TextChanged += (_, _) => parameter.Value = textBox.Text;
         return textBox;
@@ -312,6 +350,7 @@ public partial class MainWindow : MetroWindow
         var checkBox = new CheckBox
         {
             VerticalAlignment = VerticalAlignment.Center,
+            Foreground = GeneratedTextBrush,
             IsChecked = IsParameterTrue(value)
         };
         parameter.Value = checkBox.IsChecked == true ? "true" : "false";
@@ -326,9 +365,52 @@ public partial class MainWindow : MetroWindow
         {
             Text = parameter.Definition.DefaultValue,
             TextWrapping = TextWrapping.Wrap,
-            MaxWidth = 420,
-            VerticalAlignment = VerticalAlignment.Center
+            MaxWidth = 260,
+            VerticalAlignment = VerticalAlignment.Center,
+            Foreground = GeneratedMutedBrush
         };
+    }
+
+    private static void ApplyGeneratedButtonStyle(Button button)
+    {
+        button.Background = GeneratedButtonBrush;
+        button.Foreground = GeneratedTextBrush;
+        button.BorderBrush = GeneratedBorderBrush;
+        button.BorderThickness = new Thickness(1);
+        button.Cursor = System.Windows.Input.Cursors.Hand;
+        button.Padding = new Thickness(8, 0, 8, 0);
+        button.MouseEnter += (_, _) => button.Background = GeneratedButtonHoverBrush;
+        button.MouseLeave += (_, _) => button.Background = GeneratedButtonBrush;
+    }
+
+    private static void ApplyGeneratedTextBoxStyle(TextBox textBox)
+    {
+        textBox.Background = GeneratedInputBrush;
+        textBox.Foreground = GeneratedTextBrush;
+        textBox.CaretBrush = GeneratedTextBrush;
+        textBox.SelectionBrush = GeneratedSelectionBrush;
+        textBox.BorderBrush = GeneratedBorderBrush;
+        textBox.BorderThickness = new Thickness(1);
+        textBox.Padding = new Thickness(8, 4, 8, 4);
+    }
+
+    private static void ApplyGeneratedPasswordBoxStyle(PasswordBox passwordBox)
+    {
+        passwordBox.Background = GeneratedInputBrush;
+        passwordBox.Foreground = GeneratedTextBrush;
+        passwordBox.CaretBrush = GeneratedTextBrush;
+        passwordBox.BorderBrush = GeneratedBorderBrush;
+        passwordBox.BorderThickness = new Thickness(1);
+        passwordBox.Padding = new Thickness(8, 4, 8, 4);
+    }
+
+    private static void ApplyGeneratedComboBoxStyle(ComboBox comboBox)
+    {
+        comboBox.Background = GeneratedInputBrush;
+        comboBox.Foreground = GeneratedTextBrush;
+        comboBox.BorderBrush = GeneratedBorderBrush;
+        comboBox.BorderThickness = new Thickness(1);
+        comboBox.Padding = new Thickness(6, 2, 6, 2);
     }
 
     private static bool IsParameterTrue(string value)

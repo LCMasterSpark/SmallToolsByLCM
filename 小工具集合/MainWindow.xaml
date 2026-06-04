@@ -5,12 +5,13 @@
                  xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                  xmlns:models="clr-namespace:小工具集合.Models"
+                 xmlns:viewModels="clr-namespace:小工具集合.ViewModels"
                  Title="小工具集合"
                  Width="{Binding WindowWidth, Mode=TwoWay}"
                  Height="{Binding WindowHeight, Mode=TwoWay}"
                  MinWidth="1080"
                  MinHeight="760"
-                 GlowBrush="#0078D4"
+                 GlowBrush="#007ACC"
                  ResizeMode="CanResize"
                  WindowStartupLocation="CenterScreen"
                  FontFamily="Segoe UI, Microsoft YaHei UI"
@@ -18,183 +19,243 @@
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
 
-        <SolidColorBrush x:Key="PageBackgroundBrush" Color="#F6F9FC"/>
-        <SolidColorBrush x:Key="PanelBackgroundBrush" Color="#FFFFFF"/>
-        <SolidColorBrush x:Key="SidebarBackgroundBrush" Color="#EFF5FA"/>
-        <SolidColorBrush x:Key="LineBrush" Color="#DCE6F0"/>
-        <SolidColorBrush x:Key="SubtleTextBrush" Color="#5E6B78"/>
-        <SolidColorBrush x:Key="AccentBrush" Color="#0078D4"/>
-        <SolidColorBrush x:Key="AccentHoverBrush" Color="#106EBE"/>
+        <SolidColorBrush x:Key="VsWindowBrush" Color="#1E1E1E"/>
+        <SolidColorBrush x:Key="VsActivityBrush" Color="#333337"/>
+        <SolidColorBrush x:Key="VsPanelBrush" Color="#252526"/>
+        <SolidColorBrush x:Key="VsPanelAltBrush" Color="#2D2D30"/>
+        <SolidColorBrush x:Key="VsEditorBrush" Color="#1E1E1E"/>
+        <SolidColorBrush x:Key="VsInputBrush" Color="#1F1F1F"/>
+        <SolidColorBrush x:Key="VsBorderBrush" Color="#3F3F46"/>
+        <SolidColorBrush x:Key="VsTextBrush" Color="#F1F1F1"/>
+        <SolidColorBrush x:Key="VsSubtleTextBrush" Color="#C8C8C8"/>
+        <SolidColorBrush x:Key="VsMutedTextBrush" Color="#969696"/>
+        <SolidColorBrush x:Key="VsAccentBrush" Color="#007ACC"/>
+        <SolidColorBrush x:Key="VsAccentHoverBrush" Color="#0E639C"/>
+        <SolidColorBrush x:Key="VsSelectionBrush" Color="#094771"/>
+        <SolidColorBrush x:Key="VsWarningBrush" Color="#F9C74F"/>
+
+        <Style TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource VsTextBrush}"/>
+        </Style>
 
         <Style TargetType="TextBox">
-            <Setter Property="BorderBrush" Value="#CBD7E3"/>
+            <Setter Property="MinHeight" Value="30"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="BorderBrush" Value="{StaticResource VsBorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Background" Value="#FFFFFF"/>
-            <Setter Property="Foreground" Value="#1F2933"/>
-            <Setter Property="SelectionBrush" Value="#99C9F2"/>
+            <Setter Property="Background" Value="{StaticResource VsInputBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource VsTextBrush}"/>
+            <Setter Property="CaretBrush" Value="{StaticResource VsTextBrush}"/>
+            <Setter Property="SelectionBrush" Value="{StaticResource VsSelectionBrush}"/>
         </Style>
 
-        <Style TargetType="ComboBox">
-            <Setter Property="BorderBrush" Value="#CBD7E3"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Background" Value="#FFFFFF"/>
-            <Setter Property="Foreground" Value="#1F2933"/>
-        </Style>
-
-        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Height" Value="34"/>
-            <Setter Property="Padding" Value="18,0"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Cursor" Value="Hand"/>
+        <Style TargetType="ComboBoxItem">
+            <Setter Property="Background" Value="{StaticResource VsPanelBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource VsTextBrush}"/>
+            <Setter Property="MinHeight" Value="28"/>
+            <Setter Property="Padding" Value="8,4"/>
             <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="{StaticResource AccentHoverBrush}"/>
+                <Trigger Property="IsHighlighted" Value="True">
+                    <Setter Property="Background" Value="{StaticResource VsSelectionBrush}"/>
+                    <Setter Property="Foreground" Value="{StaticResource VsTextBrush}"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="{StaticResource VsAccentHoverBrush}"/>
+                    <Setter Property="Foreground" Value="{StaticResource VsTextBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
 
-        <Style x:Key="SecondaryButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#FFFFFF"/>
-            <Setter Property="Foreground" Value="#1F2933"/>
-            <Setter Property="BorderBrush" Value="#CBD7E3"/>
+        <Style TargetType="PasswordBox">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="BorderBrush" Value="{StaticResource VsBorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Height" Value="34"/>
-            <Setter Property="Padding" Value="16,0"/>
-            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Background" Value="{StaticResource VsInputBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource VsTextBrush}"/>
+            <Setter Property="CaretBrush" Value="{StaticResource VsTextBrush}"/>
         </Style>
 
-        <Style x:Key="NavButtonStyle" TargetType="Button">
-            <Setter Property="MinHeight" Value="44"/>
-            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Padding" Value="14,8"/>
+        <Style TargetType="ComboBox">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Padding" Value="6,2"/>
+            <Setter Property="BorderBrush" Value="{StaticResource VsBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Background" Value="{StaticResource VsInputBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource VsTextBrush}"/>
+        </Style>
+
+        <Style TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{StaticResource VsTextBrush}"/>
+        </Style>
+
+        <Style x:Key="CommandButtonStyle" TargetType="Button">
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="MinWidth" Value="72"/>
+            <Setter Property="Padding" Value="12,0"/>
+            <Setter Property="Background" Value="{StaticResource VsPanelAltBrush}"/>
+            <Setter Property="Foreground" Value="{StaticResource VsTextBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource VsBorderBrush}"/>
+            <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#E4F1FB"/>
+                    <Setter Property="Background" Value="#3E3E42"/>
+                    <Setter Property="BorderBrush" Value="#5A5A60"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="PrimaryCommandButtonStyle" TargetType="Button" BasedOn="{StaticResource CommandButtonStyle}">
+            <Setter Property="Background" Value="{StaticResource VsAccentBrush}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource VsAccentBrush}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource VsAccentHoverBrush}"/>
+                    <Setter Property="BorderBrush" Value="{StaticResource VsAccentHoverBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ActivityButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="52"/>
+            <Setter Property="Height" Value="48"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Foreground" Value="{StaticResource VsSubtleTextBrush}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#3E3E42"/>
+                    <Setter Property="Foreground" Value="{StaticResource VsTextBrush}"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ToolItemButtonStyle" TargetType="Button">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="{StaticResource VsSelectionBrush}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
     </Window.Resources>
 
-    <Grid Background="{StaticResource PageBackgroundBrush}">
+    <Grid Background="{StaticResource VsWindowBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="24"/>
+        </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="264"/>
+            <ColumnDefinition Width="52"/>
+            <ColumnDefinition x:Name="ToolBrowserColumn" Width="286"/>
             <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="312"/>
         </Grid.ColumnDefinitions>
 
-        <Border Grid.Column="0" Background="{StaticResource SidebarBackgroundBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="0,0,1,0">
+        <Border Grid.Row="0" Grid.Column="0" Background="{StaticResource VsActivityBrush}" BorderBrush="{StaticResource VsBorderBrush}" BorderThickness="0,0,1,0">
+            <DockPanel LastChildFill="True">
+                <Button DockPanel.Dock="Top" ToolTip="折叠/展开工具浏览器" Content="&#xE70D;" Style="{StaticResource ActivityButtonStyle}" Click="ToggleToolBrowserButton_Click"/>
+                <ItemsControl ItemsSource="{Binding Groups}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate DataType="{x:Type models:ToolGroup}">
+                            <Button ToolTip="{Binding Name}" Content="{Binding Icon}" Style="{StaticResource ActivityButtonStyle}" Click="GroupButton_Click" Tag="{Binding}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </DockPanel>
+        </Border>
+
+        <Border x:Name="ToolBrowserPanel" Grid.Row="0" Grid.Column="1" Background="{StaticResource VsPanelBrush}" BorderBrush="{StaticResource VsBorderBrush}" BorderThickness="0,0,1,0">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <StackPanel Margin="22,22,20,18">
-                    <TextBlock Text="小工具集合" FontSize="24" FontWeight="SemiBold" Foreground="#111827"/>
-                    <TextBlock Text="按大类进入，在右侧选择具体工具。" Margin="0,8,0,0" Foreground="{StaticResource SubtleTextBrush}" TextWrapping="Wrap"/>
-                </StackPanel>
+                <DockPanel Margin="12,12,12,8">
+                    <TextBlock Text="工具箱" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock DockPanel.Dock="Right" Text="{Binding SelectedGroup.Name}" Foreground="{StaticResource VsMutedTextBrush}" FontSize="12" VerticalAlignment="Center"/>
+                </DockPanel>
 
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                    <ItemsControl ItemsSource="{Binding Groups}" Margin="10,0,10,0">
+                <TextBox Grid.Row="1"
+                         Margin="12,0,12,10"
+                         Height="30"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         ToolTip="按工具名称、描述或分组搜索"/>
+
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding VisibleToolItems}" Margin="6,0,6,10">
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate DataType="{x:Type models:ToolGroup}">
-                                <Button Style="{StaticResource NavButtonStyle}" Click="GroupButton_Click" Tag="{Binding}" Margin="0,2">
-                                    <DockPanel LastChildFill="True">
-                                        <TextBlock DockPanel.Dock="Left" FontFamily="Segoe MDL2 Assets" Text="{Binding Icon}" FontSize="16" Foreground="{StaticResource AccentBrush}" Width="30" VerticalAlignment="Center"/>
-                                        <TextBlock Text="{Binding Name}" FontSize="14.5" Foreground="#1F2933" VerticalAlignment="Center"/>
-                                    </DockPanel>
+                            <DataTemplate DataType="{x:Type viewModels:ToolBrowserItem}">
+                                <Button Style="{StaticResource ToolItemButtonStyle}" Click="ToolItemButton_Click" Tag="{Binding}" Margin="0,1">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="Auto"/>
+                                        </Grid.RowDefinitions>
+                                        <TextBlock Text="{Binding Tool.Name}" FontSize="13.5" Foreground="{StaticResource VsTextBrush}" TextTrimming="CharacterEllipsis"/>
+                                        <TextBlock Grid.Row="1" Text="{Binding Group.Name}" Margin="0,3,0,0" FontSize="11.5" Foreground="{StaticResource VsMutedTextBrush}" TextTrimming="CharacterEllipsis"/>
+                                    </Grid>
                                 </Button>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
-
-                <Border Grid.Row="2" Margin="18" Padding="12" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" Background="#F8FBFE">
-                    <TextBlock Text="不会保存输入、密钥或历史记录。" Foreground="{StaticResource SubtleTextBrush}" FontSize="12.5" TextWrapping="Wrap"/>
-                </Border>
             </Grid>
         </Border>
 
-        <Grid Grid.Column="1" Margin="26,24,26,18">
+        <Grid Grid.Row="0" Grid.Column="2" Background="{StaticResource VsEditorBrush}">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="42"/>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
 
-            <DockPanel Grid.Row="0" LastChildFill="True">
-                <StackPanel>
-                    <TextBlock Text="{Binding SelectedGroup.Name}" FontSize="30" FontWeight="SemiBold" Foreground="#111827"/>
-                    <TextBlock Text="{Binding SelectedTool.Description}" Margin="0,8,0,0" Foreground="{StaticResource SubtleTextBrush}" FontSize="14" TextWrapping="Wrap"/>
-                </StackPanel>
-                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Top">
-                    <Button Content="清空" Width="84" Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,8,0" Command="{Binding ClearCommand}"/>
-                    <Button Content="{Binding PauseButtonText}" Width="84" Style="{StaticResource SecondaryButtonStyle}" Margin="0,0,8,0" Command="{Binding PauseCommand}" Visibility="{Binding IsPausableTool, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                    <Button Content="执行" Width="104" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding ExecuteCommand}"/>
-                </StackPanel>
-            </DockPanel>
-
-            <Border Grid.Row="1" Background="{StaticResource PanelBackgroundBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" Padding="16" Margin="0,20,0,18">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-
-                    <Grid Grid.Row="0">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="250"/>
-                            <ColumnDefinition Width="26"/>
-                            <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="250"/>
-                            <ColumnDefinition Width="*"/>
-                        </Grid.ColumnDefinitions>
-
-                        <TextBlock Text="类型" VerticalAlignment="Center" Foreground="#374151" Margin="0,0,10,0"/>
-                        <ComboBox Grid.Column="1" Height="34" ItemsSource="{Binding AvailableTools}" SelectedItem="{Binding SelectedTool}" DisplayMemberPath="Name"/>
-
-                        <TextBlock Grid.Column="3" Text="操作" VerticalAlignment="Center" Foreground="#374151" Margin="0,0,10,0"/>
-                        <ComboBox Grid.Column="4" Height="34" ItemsSource="{Binding SelectedTool.Operations}" SelectedItem="{Binding SelectedOperation}" DisplayMemberPath="Name"/>
-                    </Grid>
-
-                    <Grid Grid.Row="1" Margin="0,16,0,0">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Border BorderBrush="#EDF2F7" BorderThickness="0,1,0,0"/>
-                        <ScrollViewer Grid.Row="1" MaxHeight="270" Margin="0,14,0,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                            <WrapPanel x:Name="ParametersPanel" Orientation="Horizontal" VerticalAlignment="Top"/>
-                        </ScrollViewer>
-                    </Grid>
-                </Grid>
+            <Border Grid.Row="0" Background="{StaticResource VsPanelAltBrush}" BorderBrush="{StaticResource VsBorderBrush}" BorderThickness="0,0,0,1">
+                <DockPanel Margin="12,0" LastChildFill="False">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="工具" Foreground="{StaticResource VsMutedTextBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                        <ComboBox Width="210" ItemsSource="{Binding AvailableTools}" SelectedItem="{Binding SelectedTool}" DisplayMemberPath="Name"/>
+                        <TextBlock Text="操作" Foreground="{StaticResource VsMutedTextBrush}" VerticalAlignment="Center" Margin="16,0,8,0"/>
+                        <ComboBox Width="170" ItemsSource="{Binding SelectedTool.Operations}" SelectedItem="{Binding SelectedOperation}" DisplayMemberPath="Name"/>
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Content="清空" Style="{StaticResource CommandButtonStyle}" Margin="0,0,8,0" Command="{Binding ClearCommand}"/>
+                        <Button Content="{Binding PauseButtonText}" Style="{StaticResource CommandButtonStyle}" Margin="0,0,8,0" Command="{Binding PauseCommand}" Visibility="{Binding IsPausableTool, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <Button Content="复制" Style="{StaticResource CommandButtonStyle}" Margin="0,0,8,0" Click="CopyButton_Click"/>
+                        <Button Content="执行" MinWidth="88" Style="{StaticResource PrimaryCommandButtonStyle}" Command="{Binding ExecuteCommand}"/>
+                    </StackPanel>
+                </DockPanel>
             </Border>
 
-            <Grid Grid.Row="2">
+            <Grid Grid.Row="1" Margin="12">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="10"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <Border Visibility="{Binding HasInput, Converter={StaticResource BoolToVisibilityConverter}}" Background="{StaticResource PanelBackgroundBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" Padding="14">
+                <Border Visibility="{Binding HasInput, Converter={StaticResource BoolToVisibilityConverter}}" Background="{StaticResource VsPanelBrush}" BorderBrush="{StaticResource VsBorderBrush}" BorderThickness="1">
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="30"/>
                             <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
-                        <DockPanel Margin="0,0,0,8">
-                            <TextBlock Text="输入" FontSize="15" FontWeight="SemiBold" Foreground="#111827"/>
-                            <TextBlock DockPanel.Dock="Right" Text="{Binding SelectedTool.InputWatermark}" Foreground="{StaticResource SubtleTextBrush}" TextWrapping="Wrap"/>
-                        </DockPanel>
+                        <Border Background="{StaticResource VsPanelAltBrush}" BorderBrush="{StaticResource VsBorderBrush}" BorderThickness="0,0,0,1">
+                            <DockPanel Margin="10,0">
+                                <TextBlock Text="输入" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock DockPanel.Dock="Right" Text="{Binding SelectedTool.InputWatermark}" Foreground="{StaticResource VsMutedTextBrush}" FontSize="12" TextTrimming="CharacterEllipsis" VerticalAlignment="Center"/>
+                            </DockPanel>
+                        </Border>
                         <TextBox Grid.Row="1"
                                  Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
                                  AcceptsReturn="True"
@@ -204,23 +265,28 @@
                                  HorizontalScrollBarVisibility="Auto"
                                  FontFamily="Consolas"
                                  FontSize="14"
-                                 Height="96"
-                                 Padding="12"/>
+                                 Height="116"
+                                 MinHeight="116"
+                                 BorderThickness="0"
+                                 Padding="12"
+                                 Background="{StaticResource VsEditorBrush}"/>
                     </Grid>
                 </Border>
 
-                <Border Grid.Row="1" Height="14" Visibility="{Binding HasInput, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                <Border Grid.Row="1" Visibility="{Binding HasInput, Converter={StaticResource BoolToVisibilityConverter}}"/>
 
-                <Border Grid.Row="2" Background="{StaticResource PanelBackgroundBrush}" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" Padding="14">
+                <Border Grid.Row="2" Background="{StaticResource VsPanelBrush}" BorderBrush="{StaticResource VsBorderBrush}" BorderThickness="1">
                     <Grid>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="30"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        <DockPanel Margin="0,0,0,8">
-                            <TextBlock Text="输出" FontSize="15" FontWeight="SemiBold" Foreground="#111827"/>
-                            <Button DockPanel.Dock="Right" Content="复制" Width="76" Height="28" Style="{StaticResource SecondaryButtonStyle}" Click="CopyButton_Click"/>
-                        </DockPanel>
+                        <Border Background="{StaticResource VsPanelAltBrush}" BorderBrush="{StaticResource VsBorderBrush}" BorderThickness="0,0,0,1">
+                            <DockPanel Margin="10,0">
+                                <TextBlock Text="输出" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                <TextBlock DockPanel.Dock="Right" Text="{Binding SelectedTool.Name}" Foreground="{StaticResource VsMutedTextBrush}" FontSize="12" VerticalAlignment="Center"/>
+                            </DockPanel>
+                        </Border>
                         <TextBox Grid.Row="1"
                                  Text="{Binding OutputText}"
                                  IsReadOnly="True"
@@ -230,22 +296,50 @@
                                  HorizontalScrollBarVisibility="Auto"
                                  FontFamily="Consolas"
                                  FontSize="14"
+                                 MinHeight="260"
+                                 BorderThickness="0"
                                  Padding="12"
-                                 Background="#FBFCFE"/>
+                                 Background="{StaticResource VsEditorBrush}"/>
                     </Grid>
                 </Border>
             </Grid>
+        </Grid>
 
-            <Grid Grid.Row="3" Margin="0,14,0,0">
+        <Border Grid.Row="0" Grid.Column="3" Background="{StaticResource VsPanelBrush}" BorderBrush="{StaticResource VsBorderBrush}" BorderThickness="1,0,0,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Border Background="{StaticResource VsPanelAltBrush}" BorderBrush="{StaticResource VsBorderBrush}" BorderThickness="0,0,0,1" Padding="12,8">
+                    <TextBlock Text="属性" FontSize="14" FontWeight="SemiBold"/>
+                </Border>
+
+                <StackPanel Grid.Row="1" Margin="12,12,12,10">
+                    <TextBlock Text="{Binding SelectedTool.Name}" FontSize="18" FontWeight="SemiBold" TextWrapping="Wrap"/>
+                    <TextBlock Text="{Binding SelectedTool.Description}" Margin="0,6,0,0" Foreground="{StaticResource VsSubtleTextBrush}" FontSize="12.5" TextWrapping="Wrap"/>
+                    <Border Visibility="{Binding HasWarning, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,10,0,0" Background="#3A3320" BorderBrush="{StaticResource VsWarningBrush}" BorderThickness="1" Padding="8,6">
+                        <TextBlock Text="{Binding WarningText}" Foreground="#FFE8A3" FontSize="12" TextWrapping="Wrap"/>
+                    </Border>
+                </StackPanel>
+
+                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel x:Name="ParametersPanel" Margin="12,0,12,14"/>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4" Background="{StaticResource VsAccentBrush}">
+            <Grid Margin="10,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="{Binding StatusText}" Foreground="{StaticResource SubtleTextBrush}" TextWrapping="Wrap"/>
-                <Border Grid.Column="1" Visibility="{Binding HasWarning, Converter={StaticResource BoolToVisibilityConverter}}" Background="#FFF8E1" BorderBrush="#F1C232" BorderThickness="1" Padding="10,5">
-                    <TextBlock Text="{Binding WarningText}" Foreground="#6B4B00"/>
-                </Border>
+                <TextBlock Text="{Binding StatusText}" Foreground="White" FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                <TextBlock Grid.Column="1" Text="{Binding SelectedTool.GroupName}" Foreground="#DDEEFF" FontSize="12" VerticalAlignment="Center"/>
             </Grid>
-        </Grid>
+        </Border>
     </Grid>
 </mah:MetroWindow>

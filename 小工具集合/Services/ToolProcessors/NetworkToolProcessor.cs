@@ -87,6 +87,71 @@ public sealed partial class ToolProcessor
         return builder.ToString();
     }
 
+    private static string AnalyzeUrl(string input)
+    {
+        string text = input.Trim();
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            throw new FormatException("请输入完整 URL 或 query string。");
+        }
+
+        if (Uri.TryCreate(text, UriKind.Absolute, out Uri? uri) && !string.IsNullOrWhiteSpace(uri.Host))
+        {
+            var builder = new StringBuilder();
+            builder.AppendLine("URL 拆解：");
+            builder.AppendLine($"协议：{uri.Scheme}");
+            builder.AppendLine($"主机：{uri.Host}");
+            builder.AppendLine($"端口：{(uri.IsDefaultPort ? "默认" : uri.Port.ToString(CultureInfo.InvariantCulture))}");
+            builder.AppendLine($"路径：{WebUtility.UrlDecode(string.IsNullOrEmpty(uri.AbsolutePath) ? "/" : uri.AbsolutePath)}");
+            builder.AppendLine($"Fragment：{WebUtility.UrlDecode(uri.Fragment.TrimStart('#'))}");
+            builder.AppendLine();
+            AppendQueryReport(builder, uri.Query.TrimStart('?'));
+            builder.AppendLine();
+            builder.AppendLine("重建 URL：");
+            builder.AppendLine(new UriBuilder(uri).Uri.AbsoluteUri);
+            return builder.ToString();
+        }
+
+        if (LooksLikeQueryString(text))
+        {
+            var builder = new StringBuilder();
+            builder.AppendLine("Query 参数：");
+            AppendQueryPairs(builder, text.TrimStart('?'));
+            return builder.ToString();
+        }
+
+        throw new FormatException("无法识别为完整 URL 或 query string。完整 URL 示例：https://example.com/path?x=1");
+    }
+
+    private static bool LooksLikeQueryString(string text)
+    {
+        string query = text.TrimStart('?');
+        return query.Contains('=', StringComparison.Ordinal) || query.Contains('&', StringComparison.Ordinal);
+    }
+
+    private static void AppendQueryReport(StringBuilder builder, string query)
+    {
+        builder.AppendLine("Query 参数：");
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            builder.AppendLine("(无)");
+            return;
+        }
+
+        AppendQueryPairs(builder, query);
+    }
+
+    private static void AppendQueryPairs(StringBuilder builder, string query)
+    {
+        foreach (string pair in query.Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            string[] parts = pair.Split('=', 2);
+            string key = WebUtility.UrlDecode(parts[0]);
+            string value = parts.Length > 1 ? WebUtility.UrlDecode(parts[1]) : string.Empty;
+            builder.AppendLine($"{key} = {value}");
+        }
+    }
+
     private static string FormatHeaders(string input)
     {
         return string.Join(Environment.NewLine, ParseHeaderPairs(input).Select(pair => $"{pair.Key}: {pair.Value}"));
@@ -168,6 +233,162 @@ public sealed partial class ToolProcessor
         builder.AppendLine();
         builder.AppendLine($"统计：成功 {success}/{count}，失败率 {(count - success) * 100 / count}%");
         return builder.ToString();
+    }
+
+    private readonly record struct PortUsageEntry(string Protocol, string LocalAddress, string ForeignAddress, string State, int ProcessId);
+
+    private static string QueryPortUsage(string input)
+    {
+        string text = input.Trim();
+        if (!int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out int port) || port is < 1 or > 65535)
+        {
+            throw new InvalidOperationException("请输入 1 到 65535 之间的端口号。");
+        }
+
+        string output = RunProcess("netstat", "-ano", PortUsageTimeout);
+        List<PortUsageEntry> entries = ParseNetstatPortUsage(output, port);
+        if (entries.Count == 0)
+        {
+            return $"未发现本机端口 {port} 的占用记录。";
+        }
+
+        Dictionary<int, string> processNames = entries
+            .Select(entry => entry.ProcessId)
+            .Distinct()
+            .ToDictionary(pid => pid, GetProcessNameByPid);
+
+        var builder = new StringBuilder();
+        builder.AppendLine($"端口：{port}");
+        builder.AppendLine($"发现 {entries.Count} 条占用记录：");
+        for (int i = 0; i < entries.Count; i++)
+        {
+            PortUsageEntry entry = entries[i];
+            builder.AppendLine();
+            builder.AppendLine($"[{i + 1}] {entry.Protocol}");
+            builder.AppendLine($"本地地址：{entry.LocalAddress}");
+            builder.AppendLine($"外部地址：{entry.ForeignAddress}");
+            if (!string.IsNullOrWhiteSpace(entry.State))
+            {
+                builder.AppendLine($"状态：{entry.State}");
+            }
+
+            builder.AppendLine($"PID：{entry.ProcessId}");
+            builder.AppendLine($"进程：{processNames[entry.ProcessId]}");
+            builder.AppendLine($"参考命令：taskkill /PID {entry.ProcessId} /F");
+        }
+
+        return builder.ToString();
+    }
+
+    private static List<PortUsageEntry> ParseNetstatPortUsage(string output, int port)
+    {
+        var entries = new List<PortUsageEntry>();
+        foreach (string rawLine in output.Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            string[] parts = rawLine.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (parts.Length < 4 || parts[0] is not ("TCP" or "UDP"))
+            {
+                continue;
+            }
+
+            string protocol = parts[0];
+            string localAddress = parts[1];
+            if (!AddressUsesPort(localAddress, port))
+            {
+                continue;
+            }
+
+            if (protocol == "TCP" && parts.Length >= 5 && int.TryParse(parts[4], NumberStyles.Integer, CultureInfo.InvariantCulture, out int tcpPid))
+            {
+                entries.Add(new PortUsageEntry(protocol, localAddress, parts[2], parts[3], tcpPid));
+            }
+            else if (protocol == "UDP" && int.TryParse(parts[^1], NumberStyles.Integer, CultureInfo.InvariantCulture, out int udpPid))
+            {
+                string foreignAddress = parts.Length >= 3 ? parts[2] : string.Empty;
+                entries.Add(new PortUsageEntry(protocol, localAddress, foreignAddress, string.Empty, udpPid));
+            }
+        }
+
+        return entries;
+    }
+
+    private static bool AddressUsesPort(string address, int port)
+    {
+        int separator = address.LastIndexOf(':');
+        return separator >= 0
+            && int.TryParse(address[(separator + 1)..], NumberStyles.Integer, CultureInfo.InvariantCulture, out int actualPort)
+            && actualPort == port;
+    }
+
+    private static string GetProcessNameByPid(int pid)
+    {
+        try
+        {
+            using Process process = Process.GetProcessById(pid);
+            if (!string.IsNullOrWhiteSpace(process.ProcessName))
+            {
+                return process.ProcessName;
+            }
+        }
+        catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or Win32Exception)
+        {
+        }
+
+        try
+        {
+            string output = RunProcess("tasklist", $"/fi {Quote($"PID eq {pid}")} /fo csv /nh", PortUsageTimeout);
+            foreach (string line in output.Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                if (line.StartsWith("INFO:", StringComparison.OrdinalIgnoreCase) || line.StartsWith("信息:", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                string[] fields = SplitCsvLine(line);
+                if (fields.Length > 0 && !string.IsNullOrWhiteSpace(fields[0]))
+                {
+                    return fields[0];
+                }
+            }
+        }
+        catch (Exception ex) when (ex is Win32Exception or InvalidOperationException or IOException)
+        {
+            return $"未知（{TrimMessage(ex.Message)}）";
+        }
+
+        return "未知";
+    }
+
+    private static string[] SplitCsvLine(string line)
+    {
+        var fields = new List<string>();
+        var current = new StringBuilder();
+        bool inQuotes = false;
+        for (int i = 0; i < line.Length; i++)
+        {
+            char value = line[i];
+            if (value == '"' && i + 1 < line.Length && line[i + 1] == '"')
+            {
+                current.Append('"');
+                i++;
+            }
+            else if (value == '"')
+            {
+                inQuotes = !inQuotes;
+            }
+            else if (value == ',' && !inQuotes)
+            {
+                fields.Add(current.ToString());
+                current.Clear();
+            }
+            else
+            {
+                current.Append(value);
+            }
+        }
+
+        fields.Add(current.ToString());
+        return fields.ToArray();
     }
 
     private static string LookupDns(ToolRequest request)
@@ -351,6 +572,8 @@ public sealed partial class ToolProcessor
         };
 
         using Process process = Process.Start(startInfo) ?? throw new InvalidOperationException($"无法启动 {fileName}。");
+        Task<string> outputTask = process.StandardOutput.ReadToEndAsync();
+        Task<string> errorTask = process.StandardError.ReadToEndAsync();
         if (timeout is { } processTimeout && !process.WaitForExit(processTimeout))
         {
             try
@@ -367,13 +590,13 @@ public sealed partial class ToolProcessor
             throw new InvalidOperationException($"{fileName} 执行超过 {processTimeout.TotalSeconds:0.#} 秒，已停止。");
         }
 
-        string output = process.StandardOutput.ReadToEnd();
-        string error = process.StandardError.ReadToEnd();
         if (timeout is null)
         {
             process.WaitForExit();
         }
 
+        string output = outputTask.GetAwaiter().GetResult();
+        string error = errorTask.GetAwaiter().GetResult();
         if (process.ExitCode != 0)
         {
             throw new InvalidOperationException(TrimMessage(string.IsNullOrWhiteSpace(error) ? output : error));

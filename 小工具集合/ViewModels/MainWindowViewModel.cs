@@ -5,6 +5,12 @@ using 小工具集合.Services;
 
 namespace 小工具集合.ViewModels;
 
+public sealed class ToolBrowserItem
+{
+    public required ToolGroup Group { get; init; }
+    public required ToolDefinition Tool { get; init; }
+}
+
 /// <summary>
 /// 协调主窗口中的工具选择、用户输入、命令状态和偏好持久化。
 /// </summary>
@@ -19,6 +25,7 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _inputText = string.Empty;
     private string _outputText = string.Empty;
     private string _statusText = "就绪";
+    private string _searchText = string.Empty;
     private bool _isSuccess = true;
     private bool _isBusy;
     private bool _isPaused;
@@ -69,12 +76,27 @@ public sealed class MainWindowViewModel : ObservableObject
             {
                 SelectedTool = value.Tools[0];
                 OnPropertyChanged(nameof(AvailableTools));
+                OnPropertyChanged(nameof(VisibleToolItems));
                 StatusText = $"已切换到：{value.Name}";
             }
         }
     }
 
     public IReadOnlyList<ToolDefinition> AvailableTools => SelectedGroup.Tools;
+
+    public IReadOnlyList<ToolBrowserItem> VisibleToolItems
+    {
+        get
+        {
+            string query = SearchText.Trim();
+            IEnumerable<ToolGroup> groups = string.IsNullOrWhiteSpace(query) ? [SelectedGroup] : Groups;
+            return groups
+                .SelectMany(group => group.Tools
+                    .Where(tool => ToolMatchesSearch(group, tool, query))
+                    .Select(tool => new ToolBrowserItem { Group = group, Tool = tool }))
+                .ToList();
+        }
+    }
 
     public ToolDefinition SelectedTool
     {
@@ -132,6 +154,18 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         get => _statusText;
         set => SetProperty(ref _statusText, value);
+    }
+
+    public string SearchText
+    {
+        get => _searchText;
+        set
+        {
+            if (SetProperty(ref _searchText, value))
+            {
+                OnPropertyChanged(nameof(VisibleToolItems));
+            }
+        }
     }
 
     public bool IsSuccess
@@ -246,6 +280,17 @@ public sealed class MainWindowViewModel : ObservableObject
         OnPropertyChanged(nameof(HasActiveOrQueuedWork));
     }
 
+    public void SelectToolItem(ToolBrowserItem item)
+    {
+        if (item.Group != SelectedGroup)
+        {
+            SelectedGroup = item.Group;
+        }
+
+        SelectedTool = item.Tool;
+        OnPropertyChanged(nameof(VisibleToolItems));
+    }
+
     private void RebuildParameters()
     {
         // 切换工具时重建运行时参数集合，UI 层会据此重新生成对应控件。
@@ -274,6 +319,14 @@ public sealed class MainWindowViewModel : ObservableObject
 
         IsPaused = !IsPaused;
         StatusText = IsPaused ? "已暂停，当前文件处理完成后会停在下一个文件前。" : "继续处理...";
+    }
+
+    private static bool ToolMatchesSearch(ToolGroup group, ToolDefinition tool, string query)
+    {
+        return string.IsNullOrWhiteSpace(query)
+            || group.Name.Contains(query, StringComparison.OrdinalIgnoreCase)
+            || tool.Name.Contains(query, StringComparison.OrdinalIgnoreCase)
+            || tool.Description.Contains(query, StringComparison.OrdinalIgnoreCase);
     }
 
     private void RaiseCommandStates()
