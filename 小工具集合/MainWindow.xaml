@@ -9,7 +9,7 @@
                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                  xmlns:models="clr-namespace:小工具集合.Models"
                  xmlns:viewModels="clr-namespace:小工具集合.ViewModels"
-                 Title="小工具集合"
+                 Title="LCM的工具箱"
                  Width="{Binding WindowWidth, Mode=TwoWay}"
                  Height="{Binding WindowHeight, Mode=TwoWay}"
                  MinWidth="1080"
@@ -267,7 +267,7 @@
                 </Grid.RowDefinitions>
 
                 <DockPanel Margin="12,12,12,8">
-                    <TextBlock Text="工具箱" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                    <TextBlock Text="LCM的工具箱" FontSize="15" FontWeight="SemiBold" VerticalAlignment="Center"/>
                     <TextBlock DockPanel.Dock="Right" Text="{Binding SelectedGroup.Name}" Foreground="{StaticResource VsMutedTextBrush}" FontSize="12" VerticalAlignment="Center"/>
                 </DockPanel>
 

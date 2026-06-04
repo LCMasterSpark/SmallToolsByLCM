@@ -24,14 +24,19 @@ public sealed class PreferenceService
 {
     private readonly AppStateService _appStateService = new();
     private readonly string _legacyFilePath;
+    private readonly string _oldLegacyFilePath;
 
     public PreferenceService()
     {
         string folder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "小工具集合");
+            "LCM的工具箱");
         Directory.CreateDirectory(folder);
         _legacyFilePath = Path.Combine(folder, "preferences.json");
+        _oldLegacyFilePath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "小工具集合",
+            "preferences.json");
     }
 
     public AppPreferences Load()
@@ -43,12 +48,13 @@ public sealed class PreferenceService
 
         try
         {
-            if (!File.Exists(_legacyFilePath))
+            string legacyPath = File.Exists(_legacyFilePath) ? _legacyFilePath : _oldLegacyFilePath;
+            if (!File.Exists(legacyPath))
             {
                 return new AppPreferences();
             }
 
-            string json = File.ReadAllText(_legacyFilePath);
+            string json = File.ReadAllText(legacyPath);
             AppPreferences preferences = JsonSerializer.Deserialize<AppPreferences>(json) ?? new AppPreferences();
             _appStateService.SavePreferences(preferences);
             return preferences;

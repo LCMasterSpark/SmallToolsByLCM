@@ -195,7 +195,7 @@ public sealed partial class ToolProcessor
 
     private static string GenerateCommitMessages(ToolRequest request)
     {
-        string summary = string.IsNullOrWhiteSpace(request.Input) ? "更新小工具功能" : request.Input.Trim();
+        string summary = string.IsNullOrWhiteSpace(request.Input) ? "更新工具箱功能" : request.Input.Trim();
         string language = GetParameter(request, "language");
         string type = GetParameter(request, "type");
         if (string.IsNullOrWhiteSpace(type) || type == "自动")
@@ -215,7 +215,7 @@ public sealed partial class ToolProcessor
         {
             builder.AppendLine($"{type}: {summary}");
             builder.AppendLine($"{type}(tools): {summary}");
-            builder.AppendLine($"{type}: 更新小工具集合");
+            builder.AppendLine($"{type}: 更新 LCM的工具箱");
         }
 
         string local = builder.ToString();

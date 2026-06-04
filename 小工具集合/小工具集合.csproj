@@ -1,4 +1,4 @@
-<!-- 文件作用：配置小工具集合 WPF 项目的目标框架、版本、依赖和发布属性。 -->
+<!-- 文件作用：配置 LCM的工具箱 WPF 项目的目标框架、版本、依赖和发布属性。 -->
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
@@ -9,6 +9,8 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <NuGetAudit>false</NuGetAudit>
+    <AssemblyName>LCM的工具箱</AssemblyName>
+    <Product>LCM的工具箱</Product>
     <Version>2.8.0</Version>
     <AssemblyVersion>2.8.0.0</AssemblyVersion>
     <FileVersion>2.8.0.0</FileVersion>

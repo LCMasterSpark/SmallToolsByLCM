@@ -1,3 +1,4 @@
 <Solution>
-  <Project Path="小工具集合/小工具集合.csproj" />
+  <Project Path="小工具集合\小工具集合.csproj" />
+  <Project Path="小工具集合.Tests\小工具集合.Tests.csproj" />
 </Solution>

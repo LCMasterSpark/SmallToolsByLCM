@@ -20,7 +20,7 @@ public partial class QrCodeControl : UserControl, IInteractiveToolView, IDisposa
             "text",
             "普通文本",
             "最通用，微信和其他扫码器通常都会按文字展示。",
-            "你好，LCMasterSpark！\n小工具集合 QR Code 测试"),
+            "你好，LCMasterSpark！\nLCM的工具箱 QR Code 测试"),
         new(
             "url",
             "网址",
@@ -35,7 +35,7 @@ public partial class QrCodeControl : UserControl, IInteractiveToolView, IDisposa
             "vcard",
             "联系人 vCard",
             "通讯录/专业扫码器通常能识别联系人；微信可能按纯文本展示。",
-            "BEGIN:VCARD\nVERSION:3.0\nFN:LCMasterSpark\nORG:小工具集合\nURL:https://github.com/LCMasterSpark\nEND:VCARD"),
+            "BEGIN:VCARD\nVERSION:3.0\nFN:LCMasterSpark\nORG:LCM的工具箱\nURL:https://github.com/LCMasterSpark\nEND:VCARD"),
         new(
             "email",
             "邮件",
