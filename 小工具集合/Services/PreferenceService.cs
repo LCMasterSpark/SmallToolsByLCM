@@ -21,7 +21,8 @@ public sealed class AppPreferences
 /// </summary>
 public sealed class PreferenceService
 {
-    private readonly string _filePath;
+    private readonly AppStateService _appStateService = new();
+    private readonly string _legacyFilePath;
 
     public PreferenceService()
     {
@@ -29,20 +30,27 @@ public sealed class PreferenceService
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "小工具集合");
         Directory.CreateDirectory(folder);
-        _filePath = Path.Combine(folder, "preferences.json");
+        _legacyFilePath = Path.Combine(folder, "preferences.json");
     }
 
     public AppPreferences Load()
     {
+        if (_appStateService.StateFileExists)
+        {
+            return _appStateService.LoadPreferences();
+        }
+
         try
         {
-            if (!File.Exists(_filePath))
+            if (!File.Exists(_legacyFilePath))
             {
                 return new AppPreferences();
             }
 
-            string json = File.ReadAllText(_filePath);
-            return JsonSerializer.Deserialize<AppPreferences>(json) ?? new AppPreferences();
+            string json = File.ReadAllText(_legacyFilePath);
+            AppPreferences preferences = JsonSerializer.Deserialize<AppPreferences>(json) ?? new AppPreferences();
+            _appStateService.SavePreferences(preferences);
+            return preferences;
         }
         catch
         {
@@ -53,7 +61,6 @@ public sealed class PreferenceService
 
     public void Save(AppPreferences preferences)
     {
-        var json = JsonSerializer.Serialize(preferences, new JsonSerializerOptions { WriteIndented = true });
-        File.WriteAllText(_filePath, json);
+        _appStateService.SavePreferences(preferences);
     }
 }

@@ -122,6 +122,8 @@ public sealed class MainWindowViewModel : ObservableObject
                 _preferences.LastToolId = value.Id;
                 SavePreferences();
                 OnPropertyChanged(nameof(HasInput));
+                OnPropertyChanged(nameof(HasInteractiveView));
+                OnPropertyChanged(nameof(IsStandardTool));
                 OnPropertyChanged(nameof(IsPausableTool));
                 OnPropertyChanged(nameof(HasQueuedWork));
                 OnPropertyChanged(nameof(PauseButtonText));
@@ -179,6 +181,10 @@ public sealed class MainWindowViewModel : ObservableObject
     public string WarningText => SelectedTool.Warning;
 
     public bool HasInput => SelectedTool.RequiresInput;
+
+    public bool HasInteractiveView => !string.IsNullOrWhiteSpace(SelectedTool.InteractiveViewKey);
+
+    public bool IsStandardTool => !HasInteractiveView;
 
     public bool IsPausableTool => SelectedTool.Id is "fileEncode" or "mp4ToMp3" or "imageConvert" or "fileHash" or "imageCompress";
 

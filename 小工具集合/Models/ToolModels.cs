@@ -42,6 +42,7 @@ public sealed class ToolDefinition
     public string Warning { get; init; } = string.Empty;
     public string InputWatermark { get; init; } = "请输入文本";
     public bool RequiresInput { get; init; } = true;
+    public string InteractiveViewKey { get; init; } = string.Empty;
 }
 
 /// <summary>

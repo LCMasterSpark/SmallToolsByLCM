@@ -6,6 +6,8 @@ using System.Windows.Media;
 using MahApps.Metro.Controls;
 using Microsoft.Win32;
 using 小工具集合.Models;
+using 小工具集合.Views.Generation;
+using 小工具集合.Views.FunLab;
 using 小工具集合.ViewModels;
 
 namespace 小工具集合;
@@ -33,7 +35,9 @@ public partial class MainWindow : MetroWindow
         _viewModel = new MainWindowViewModel();
         DataContext = _viewModel;
         _viewModel.Parameters.CollectionChanged += Parameters_CollectionChanged;
+        _viewModel.PropertyChanged += ViewModel_PropertyChanged;
         BuildParameterControls();
+        UpdateInteractiveHost();
     }
 
     protected override void OnClosing(CancelEventArgs e)
@@ -52,6 +56,7 @@ public partial class MainWindow : MetroWindow
         }
 
         base.OnClosing(e);
+        DisposeInteractiveHost();
     }
 
     private void GroupButton_Click(object sender, RoutedEventArgs e)
@@ -93,6 +98,42 @@ public partial class MainWindow : MetroWindow
     private void Parameters_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
     {
         BuildParameterControls();
+    }
+
+    private void ViewModel_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(MainWindowViewModel.SelectedTool))
+        {
+            UpdateInteractiveHost();
+        }
+    }
+
+    private void UpdateInteractiveHost()
+    {
+        DisposeInteractiveHost();
+        InteractiveHost.Content = _viewModel.SelectedTool.InteractiveViewKey switch
+        {
+            "powerChecker" => new PowerCheckerControl(),
+            "timePointer" => new TimePointerControl(),
+            "minesweeper" => new MinesweeperControl(),
+            "screenPointer" => new ScreenPointerControl(),
+            _ => null
+        };
+    }
+
+    private void DisposeInteractiveHost()
+    {
+        if (InteractiveHost.Content is IInteractiveToolView interactiveToolView)
+        {
+            interactiveToolView.Deactivate();
+        }
+
+        if (InteractiveHost.Content is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
+
+        InteractiveHost.Content = null;
     }
 
     private void BuildParameterControls()

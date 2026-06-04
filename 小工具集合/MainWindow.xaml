@@ -83,6 +83,87 @@
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Background" Value="{StaticResource VsInputBrush}"/>
             <Setter Property="Foreground" Value="{StaticResource VsTextBrush}"/>
+            <Setter Property="SnapsToDevicePixels" Value="True"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid SnapsToDevicePixels="True">
+                            <ToggleButton x:Name="DropDownToggle"
+                                          Focusable="False"
+                                          ClickMode="Press"
+                                          Background="{TemplateBinding Background}"
+                                          BorderBrush="{TemplateBinding BorderBrush}"
+                                          BorderThickness="{TemplateBinding BorderThickness}"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="Chrome"
+                                                Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition Width="28"/>
+                                                </Grid.ColumnDefinitions>
+                                                <TextBlock Grid.Column="1"
+                                                           Text="⌄"
+                                                           Foreground="{StaticResource VsSubtleTextBrush}"
+                                                           HorizontalAlignment="Center"
+                                                           VerticalAlignment="Center"
+                                                           FontSize="14"/>
+                                            </Grid>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Chrome" Property="Background" Value="#2A2D2E"/>
+                                                <Setter TargetName="Chrome" Property="BorderBrush" Value="#5A5A60"/>
+                                            </Trigger>
+                                            <Trigger Property="IsChecked" Value="True">
+                                                <Setter TargetName="Chrome" Property="BorderBrush" Value="{StaticResource VsAccentBrush}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+
+                            <ContentPresenter x:Name="ContentSite"
+                                              Margin="8,0,30,0"
+                                              HorizontalAlignment="Left"
+                                              VerticalAlignment="Center"
+                                              IsHitTestVisible="False"
+                                              Content="{TemplateBinding SelectionBoxItem}"
+                                              ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                                              ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"/>
+
+                            <Popup x:Name="PART_Popup"
+                                   Placement="Bottom"
+                                   AllowsTransparency="True"
+                                   Focusable="False"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}"
+                                   PopupAnimation="Fade">
+                                <Border Width="{Binding ActualWidth, RelativeSource={RelativeSource TemplatedParent}}"
+                                        MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                                        Background="{StaticResource VsPanelBrush}"
+                                        BorderBrush="{StaticResource VsAccentBrush}"
+                                        BorderThickness="1">
+                                    <ScrollViewer CanContentScroll="True">
+                                        <ItemsPresenter/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="HasItems" Value="False">
+                                <Setter TargetName="PART_Popup" Property="MinHeight" Value="28"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Opacity" Value="0.55"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
 
         <Style TargetType="CheckBox">
@@ -224,20 +305,32 @@
                 <DockPanel Margin="12,0" LastChildFill="False">
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <TextBlock Text="工具" Foreground="{StaticResource VsMutedTextBrush}" VerticalAlignment="Center" Margin="0,0,8,0"/>
-                        <ComboBox Width="210" ItemsSource="{Binding AvailableTools}" SelectedItem="{Binding SelectedTool}" DisplayMemberPath="Name"/>
+                        <ComboBox Width="210" ItemsSource="{Binding AvailableTools}" SelectedItem="{Binding SelectedTool}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}" Foreground="{StaticResource VsTextBrush}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
                         <TextBlock Text="操作" Foreground="{StaticResource VsMutedTextBrush}" VerticalAlignment="Center" Margin="16,0,8,0"/>
-                        <ComboBox Width="170" ItemsSource="{Binding SelectedTool.Operations}" SelectedItem="{Binding SelectedOperation}" DisplayMemberPath="Name"/>
+                        <ComboBox Width="170" ItemsSource="{Binding SelectedTool.Operations}" SelectedItem="{Binding SelectedOperation}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Name}" Foreground="{StaticResource VsTextBrush}"/>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
                     </StackPanel>
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Content="清空" Style="{StaticResource CommandButtonStyle}" Margin="0,0,8,0" Command="{Binding ClearCommand}"/>
+                        <Button Content="清空" Style="{StaticResource CommandButtonStyle}" Margin="0,0,8,0" Command="{Binding ClearCommand}" Visibility="{Binding IsStandardTool, Converter={StaticResource BoolToVisibilityConverter}}"/>
                         <Button Content="{Binding PauseButtonText}" Style="{StaticResource CommandButtonStyle}" Margin="0,0,8,0" Command="{Binding PauseCommand}" Visibility="{Binding IsPausableTool, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                        <Button Content="复制" Style="{StaticResource CommandButtonStyle}" Margin="0,0,8,0" Click="CopyButton_Click"/>
-                        <Button Content="执行" MinWidth="88" Style="{StaticResource PrimaryCommandButtonStyle}" Command="{Binding ExecuteCommand}"/>
+                        <Button Content="复制" Style="{StaticResource CommandButtonStyle}" Margin="0,0,8,0" Click="CopyButton_Click" Visibility="{Binding IsStandardTool, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <Button Content="执行" MinWidth="88" Style="{StaticResource PrimaryCommandButtonStyle}" Command="{Binding ExecuteCommand}" Visibility="{Binding IsStandardTool, Converter={StaticResource BoolToVisibilityConverter}}"/>
                     </StackPanel>
                 </DockPanel>
             </Border>
 
-            <Grid Grid.Row="1" Margin="12">
+            <Grid x:Name="StandardWorkspace" Grid.Row="1" Margin="12" Visibility="{Binding IsStandardTool, Converter={StaticResource BoolToVisibilityConverter}}">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="10"/>
@@ -303,6 +396,10 @@
                     </Grid>
                 </Border>
             </Grid>
+
+            <Border Grid.Row="1" Margin="12" Background="{StaticResource VsPanelBrush}" BorderBrush="{StaticResource VsBorderBrush}" BorderThickness="1" Visibility="{Binding HasInteractiveView, Converter={StaticResource BoolToVisibilityConverter}}">
+                <ContentControl x:Name="InteractiveHost"/>
+            </Border>
         </Grid>
 
         <Border Grid.Row="0" Grid.Column="3" Background="{StaticResource VsPanelBrush}" BorderBrush="{StaticResource VsBorderBrush}" BorderThickness="1,0,0,0">

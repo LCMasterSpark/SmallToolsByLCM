@@ -1,0 +1,58 @@
+<UserControl x:Class="小工具集合.Views.FunLab.TimePointerControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             FontFamily="Segoe UI, Microsoft YaHei UI">
+    <Grid Background="#1E1E1E">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Background="#252526" BorderBrush="#3F3F46" BorderThickness="0,0,0,1" Padding="18,14">
+            <DockPanel>
+                <StackPanel>
+                    <TextBlock Text="TIME POINTER" Foreground="#F1F1F1" FontSize="24" FontWeight="SemiBold"/>
+                    <TextBlock Text="高精度CNN驱动精准时钟" Margin="0,4,0,0" Foreground="#969696" FontSize="13"/>
+                </StackPanel>
+                <TextBlock DockPanel.Dock="Right" Text="16.6ms tracking" Foreground="#C8C8C8" VerticalAlignment="Center"/>
+            </DockPanel>
+        </Border>
+
+        <Grid Grid.Row="1" Margin="28">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="280"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel VerticalAlignment="Center">
+                <TextBlock Text="程序说明" Foreground="#F1F1F1" FontSize="28" FontWeight="SemiBold"/>
+                <TextBlock Margin="0,16,0,0"
+                           Foreground="#C8C8C8"
+                           FontSize="15"
+                           LineHeight="26"
+                           TextWrapping="Wrap"
+                           Text="正在调用高精度 CNN 锁定系统时钟，结果可能过于准确，请谨慎直视。"/>
+                <StackPanel Orientation="Horizontal" Margin="0,28,0,0">
+                    <Button x:Name="StartButton" Content="启动高精度分析" Width="156" Height="34" Background="#007ACC" Foreground="White" BorderThickness="0" FontWeight="SemiBold" Cursor="Hand" Click="StartButton_Click"/>
+                    <Button x:Name="StopButton" Content="停止" Width="86" Height="34" Margin="10,0,0,0" Background="#2D2D30" Foreground="#F1F1F1" BorderBrush="#3F3F46" BorderThickness="1" Cursor="Hand" Click="StopButton_Click"/>
+                </StackPanel>
+            </StackPanel>
+
+            <Border Grid.Column="1" Background="#252526" BorderBrush="#3F3F46" BorderThickness="1" Padding="22" VerticalAlignment="Center">
+                <StackPanel>
+                    <TextBlock Text="运行状态" Foreground="#F1F1F1" FontSize="20" FontWeight="SemiBold"/>
+                    <TextBlock x:Name="StatusText" Text="待机" Margin="0,14,0,0" Foreground="#4FC1FF" FontSize="30" FontWeight="SemiBold"/>
+                    <Rectangle Height="1" Margin="0,22,0,20" Fill="#3F3F46"/>
+                    <TextBlock Text="AI 推理引擎" Foreground="#C8C8C8" FontSize="14" LineHeight="24"/>
+                    <TextBlock Text="任务栏时钟定位" Foreground="#C8C8C8" FontSize="14" LineHeight="24"/>
+                    <TextBlock Text="辅助指示层" Foreground="#C8C8C8" FontSize="14" LineHeight="24"/>
+                </StackPanel>
+            </Border>
+        </Grid>
+
+        <Border Grid.Row="2" Background="#252526" BorderBrush="#3F3F46" BorderThickness="0,1,0,0" Padding="18,12">
+            <TextBlock Text="辅助层理论上不影响鼠标；如果点不准，建议先怀疑时钟。" Foreground="#969696"/>
+        </Border>
+    </Grid>
+</UserControl>

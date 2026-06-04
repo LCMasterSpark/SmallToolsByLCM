@@ -116,7 +116,8 @@ public static class ToolCatalog
                         new() { Id = "toUnix", Name = "时间转时间戳" }
                     ]
                 },
-                PasswordGenerator()
+                PasswordGenerator(),
+                ScreenPointer()
             ]
         },
         new()
@@ -140,7 +141,10 @@ public static class ToolCatalog
                 OnlineHitokoto(),
                 OnlinePoemLine(),
                 WeatherCard(),
-                IpInfoCard()
+                IpInfoCard(),
+                PowerChecker(),
+                TimePointer(),
+                Minesweeper()
             ]
         }
     ];
@@ -548,6 +552,17 @@ public static class ToolCatalog
         ]
     };
 
+    private static ToolDefinition ScreenPointer() => new()
+    {
+        Id = "screenPointer",
+        Name = "屏幕指针",
+        GroupName = "生成工具",
+        Description = "生成并配置点击穿透的屏幕准星 overlay。",
+        RequiresInput = false,
+        Operations = [new() { Id = "interactive", Name = "互动" }],
+        InteractiveViewKey = "screenPointer"
+    };
+
     private static ToolDefinition ChoicePicker() => new()
     {
         Id = "choicePicker",
@@ -762,5 +777,38 @@ public static class ToolCatalog
         InputWatermark = "可留空查询当前出口 IP；也可输入 IP 或域名，例如 8.8.8.8。",
         RequiresInput = false,
         Operations = [new() { Id = "query", Name = "查询 IP" }]
+    };
+
+    private static ToolDefinition PowerChecker() => new()
+    {
+        Id = "powerChecker",
+        Name = "电量检测器",
+        GroupName = "趣味实验室",
+        Description = "使用 LCMasterSpark 高精度存在性判定引擎检测这台电脑是否有电。",
+        RequiresInput = false,
+        Operations = [new() { Id = "interactive", Name = "互动" }],
+        InteractiveViewKey = "powerChecker"
+    };
+
+    private static ToolDefinition TimePointer() => new()
+    {
+        Id = "timePointer",
+        Name = "时间显示器",
+        GroupName = "趣味实验室",
+        Description = "启动高精度时间感知分析，并用红色箭头指向任务栏时间。",
+        RequiresInput = false,
+        Operations = [new() { Id = "interactive", Name = "互动" }],
+        InteractiveViewKey = "timePointer"
+    };
+
+    private static ToolDefinition Minesweeper() => new()
+    {
+        Id = "minesweeper",
+        Name = "扫雷",
+        GroupName = "趣味实验室",
+        Description = "内嵌版扫雷小游戏，保留普通模式、街机模式和本次运行内战绩。",
+        RequiresInput = false,
+        Operations = [new() { Id = "interactive", Name = "互动" }],
+        InteractiveViewKey = "minesweeper"
     };
 }
