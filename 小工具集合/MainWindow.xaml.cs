@@ -306,10 +306,13 @@ public partial class MainWindow : MetroWindow
 
     private static CheckBox CreateCheckBox(ToolParameterValue parameter)
     {
+        string value = string.IsNullOrWhiteSpace(parameter.Value)
+            ? parameter.Definition.DefaultValue
+            : parameter.Value;
         var checkBox = new CheckBox
         {
             VerticalAlignment = VerticalAlignment.Center,
-            IsChecked = parameter.Definition.DefaultValue.Equals("true", StringComparison.OrdinalIgnoreCase)
+            IsChecked = IsParameterTrue(value)
         };
         parameter.Value = checkBox.IsChecked == true ? "true" : "false";
         checkBox.Checked += (_, _) => parameter.Value = "true";
@@ -326,6 +329,11 @@ public partial class MainWindow : MetroWindow
             MaxWidth = 420,
             VerticalAlignment = VerticalAlignment.Center
         };
+    }
+
+    private static bool IsParameterTrue(string value)
+    {
+        return value.Equals("true", StringComparison.OrdinalIgnoreCase) || value == "1" || value == "是";
     }
 
     private static string? PickInputFile()

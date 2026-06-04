@@ -146,7 +146,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public bool HasInput => SelectedTool.RequiresInput;
 
-    public bool IsPausableTool => SelectedTool.Id is "fileEncode" or "mp4ToMp3" or "imageConvert";
+    public bool IsPausableTool => SelectedTool.Id is "fileEncode" or "mp4ToMp3" or "imageConvert" or "fileHash" or "imageCompress";
 
     // 文件队列即使尚未开始执行也视为待处理工作，
     // 避免关闭程序时误丢已经准备好的批处理列表。
@@ -238,10 +238,7 @@ public sealed class MainWindowViewModel : ObservableObject
     {
         InputText = string.Empty;
         OutputText = string.Empty;
-        foreach (ToolParameterValue parameter in Parameters)
-        {
-            parameter.Value = string.Empty;
-        }
+        RebuildParameters();
 
         StatusText = "已清空";
         IsSuccess = true;

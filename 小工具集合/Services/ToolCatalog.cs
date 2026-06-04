@@ -31,7 +31,10 @@ public static class ToolCatalog
             Tools =
             [
                 Formatter("json", "JSON", "JSON 格式化、压缩和校验。"),
-                Formatter("xml", "XML", "XML 格式化、压缩和校验。")
+                Formatter("xml", "XML", "XML 格式化、压缩和校验。"),
+                JwtParser(),
+                RegexTester(),
+                TextDiff()
             ]
         },
         new()
@@ -57,7 +60,9 @@ public static class ToolCatalog
             [
                 FileEncode(),
                 Mp4ToMp3(),
-                ImageConvert()
+                ImageConvert(),
+                FileHash(),
+                ImageCompress()
             ]
         },
         new()
@@ -71,6 +76,10 @@ public static class ToolCatalog
                 NetworkText("headerFormat", "Header 格式化", "将 HTTP Header 文本格式化为逐行键值列表。", "format", "格式化"),
                 NetworkText("cookieFormat", "Cookie 格式化", "将 Cookie 字符串拆分为逐行键值列表。", "format", "格式化"),
                 Ping(),
+                PortCheck(),
+                DnsLookup(),
+                PublicIp(),
+                CurlGenerator(),
                 HostsReset(),
                 ProxyReset(),
                 NetworkReset()
@@ -145,6 +154,43 @@ public static class ToolCatalog
             new() { Id = "format", Name = "格式化" },
             new() { Id = "minify", Name = "压缩" }
         ]
+    };
+
+    private static ToolDefinition JwtParser() => new()
+    {
+        Id = "jwt",
+        Name = "JWT 解析",
+        GroupName = "文本格式化",
+        Description = "本地解码 JWT Header/Payload，不校验签名。",
+        InputWatermark = "请输入 JWT token。",
+        Operations = [new() { Id = "parse", Name = "解析" }]
+    };
+
+    private static ToolDefinition RegexTester() => new()
+    {
+        Id = "regexTest",
+        Name = "正则测试",
+        GroupName = "文本格式化",
+        Description = "测试正则表达式并输出匹配项、分组和索引。",
+        InputWatermark = "请输入要测试的文本。",
+        Operations = [new() { Id = "test", Name = "测试" }],
+        Parameters =
+        [
+            new() { Id = "pattern", Name = "正则", Kind = ToolParameterKind.Multiline },
+            new() { Id = "ignoreCase", Name = "忽略大小写", Kind = ToolParameterKind.CheckBox },
+            new() { Id = "multiline", Name = "多行模式", Kind = ToolParameterKind.CheckBox }
+        ]
+    };
+
+    private static ToolDefinition TextDiff() => new()
+    {
+        Id = "textDiff",
+        Name = "文本差异",
+        GroupName = "文本格式化",
+        Description = "对比原文本和新文本，输出统一 diff。",
+        InputWatermark = "请输入原文本。",
+        Operations = [new() { Id = "diff", Name = "生成 Diff" }],
+        Parameters = [new() { Id = "newText", Name = "新文本", Kind = ToolParameterKind.Multiline }]
     };
 
     private static ToolDefinition Hash(string id, string name, string description, string warning = "") => new()
@@ -257,6 +303,44 @@ public static class ToolCatalog
         ]
     };
 
+    private static ToolDefinition FileHash() => new()
+    {
+        Id = "fileHash",
+        Name = "文件哈希",
+        GroupName = "文件与批处理",
+        Description = "批量计算文件 MD5、SHA-256 或 SHA-512 摘要。",
+        InputWatermark = "可在参数区添加多个文件；输入区可留空。",
+        RequiresInput = false,
+        Operations = [new() { Id = "hash", Name = "计算哈希" }],
+        Parameters =
+        [
+            new() { Id = "inputFiles", Name = "文件队列", Kind = ToolParameterKind.FileList },
+            new() { Id = "algorithm", Name = "算法", Kind = ToolParameterKind.Combo, DefaultValue = "SHA-256", Options = ["SHA-256", "SHA-512", "MD5"] }
+        ]
+    };
+
+    private static ToolDefinition ImageCompress() => new()
+    {
+        Id = "imageCompress",
+        Name = "图片压缩/改尺寸",
+        GroupName = "文件与批处理",
+        Description = "批量压缩 jpg、png、webp 图片，可限制最大宽高。",
+        InputWatermark = "可在参数区添加多个图片文件；输入区可留空。",
+        RequiresInput = false,
+        Operations = [new() { Id = "compress", Name = "压缩图片" }],
+        Parameters =
+        [
+            new() { Id = "inputFiles", Name = "图片队列", Kind = ToolParameterKind.FileList },
+            new() { Id = "outputDirectory", Name = "输出目录", Kind = ToolParameterKind.Directory },
+            new() { Id = "quality", Name = "质量", Kind = ToolParameterKind.Number, DefaultValue = "85" },
+            new() { Id = "maxWidth", Name = "最大宽", Kind = ToolParameterKind.Number },
+            new() { Id = "maxHeight", Name = "最大高", Kind = ToolParameterKind.Number },
+            new() { Id = "targetFormat", Name = "目标格式", Kind = ToolParameterKind.Combo, DefaultValue = "保持原格式", Options = ["保持原格式", "jpg", "png", "webp"] },
+            new() { Id = "overwrite", Name = "覆盖同名", Kind = ToolParameterKind.CheckBox, DefaultValue = "true" },
+            new() { Id = "advancedNote", Name = "预设说明", Kind = ToolParameterKind.ReadOnly, DefaultValue = "默认质量 85；最大宽/高留空表示不改尺寸；输出文件默认追加 _compressed。" }
+        ]
+    };
+
     private static ToolDefinition HttpRequest() => new()
     {
         Id = "httpRequest",
@@ -294,6 +378,60 @@ public static class ToolCatalog
         [
             new() { Id = "count", Name = "次数", Kind = ToolParameterKind.Number, DefaultValue = "4" },
             new() { Id = "timeout", Name = "超时(ms)", Kind = ToolParameterKind.Number, DefaultValue = "1000" }
+        ]
+    };
+
+    private static ToolDefinition PortCheck() => new()
+    {
+        Id = "portCheck",
+        Name = "端口连通测试",
+        GroupName = "网络与接口",
+        Description = "测试主机 TCP 端口连通性并输出耗时统计。",
+        InputWatermark = "请输入主机名或 IP，例如 example.com。",
+        Operations = [new() { Id = "check", Name = "开始测试" }],
+        Parameters =
+        [
+            new() { Id = "port", Name = "端口", Kind = ToolParameterKind.Number, DefaultValue = "443" },
+            new() { Id = "count", Name = "次数", Kind = ToolParameterKind.Number, DefaultValue = "4" },
+            new() { Id = "timeout", Name = "超时(ms)", Kind = ToolParameterKind.Number, DefaultValue = "1000" }
+        ]
+    };
+
+    private static ToolDefinition DnsLookup() => new()
+    {
+        Id = "dnsLookup",
+        Name = "DNS 查询",
+        GroupName = "网络与接口",
+        Description = "使用系统 DNS 查询常见记录类型。",
+        InputWatermark = "请输入域名，例如 example.com。",
+        Operations = [new() { Id = "lookup", Name = "查询" }],
+        Parameters = [new() { Id = "recordType", Name = "类型", Kind = ToolParameterKind.Combo, DefaultValue = "A", Options = ["A", "AAAA", "CNAME", "MX", "TXT", "NS"] }]
+    };
+
+    private static ToolDefinition PublicIp() => new()
+    {
+        Id = "publicIp",
+        Name = "公网 IP 查询",
+        GroupName = "网络与接口",
+        Description = "依次请求多个公开接口查询当前公网 IP。",
+        InputWatermark = "无需输入；点击执行后联网查询。",
+        RequiresInput = false,
+        Operations = [new() { Id = "query", Name = "查询公网 IP" }]
+    };
+
+    private static ToolDefinition CurlGenerator() => new()
+    {
+        Id = "curlGenerator",
+        Name = "生成 curl",
+        GroupName = "网络与接口",
+        Description = "根据方法、URL、Headers 和 Body 生成 curl 命令。",
+        InputWatermark = "请输入请求 Body；无 Body 可留空。",
+        Operations = [new() { Id = "generate", Name = "生成 curl" }],
+        Parameters =
+        [
+            new() { Id = "method", Name = "方法", Kind = ToolParameterKind.Combo, DefaultValue = "GET", Options = ["GET", "POST", "PUT", "PATCH", "DELETE"] },
+            new() { Id = "url", Name = "URL", Kind = ToolParameterKind.Text },
+            new() { Id = "headers", Name = "Headers", Kind = ToolParameterKind.Multiline }
         ]
     };
 
