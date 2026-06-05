@@ -14,7 +14,7 @@
                  Height="{Binding WindowHeight, Mode=TwoWay}"
                  MinWidth="1080"
                  MinHeight="760"
-                 GlowBrush="#007ACC"
+                 GlowBrush="#68217A"
                  ResizeMode="CanResize"
                  WindowStartupLocation="CenterScreen"
                  FontFamily="Segoe UI, Microsoft YaHei UI"
@@ -32,9 +32,9 @@
         <SolidColorBrush x:Key="VsTextBrush" Color="#F1F1F1"/>
         <SolidColorBrush x:Key="VsSubtleTextBrush" Color="#C8C8C8"/>
         <SolidColorBrush x:Key="VsMutedTextBrush" Color="#969696"/>
-        <SolidColorBrush x:Key="VsAccentBrush" Color="#007ACC"/>
-        <SolidColorBrush x:Key="VsAccentHoverBrush" Color="#0E639C"/>
-        <SolidColorBrush x:Key="VsSelectionBrush" Color="#094771"/>
+        <SolidColorBrush x:Key="VsAccentBrush" Color="#68217A"/>
+        <SolidColorBrush x:Key="VsAccentHoverBrush" Color="#7A2F8F"/>
+        <SolidColorBrush x:Key="VsSelectionBrush" Color="#4B2D5E"/>
         <SolidColorBrush x:Key="VsWarningBrush" Color="#F9C74F"/>
 
         <Style TargetType="TextBlock">
@@ -110,7 +110,7 @@
                                                     <ColumnDefinition Width="28"/>
                                                 </Grid.ColumnDefinitions>
                                                 <TextBlock Grid.Column="1"
-                                                           Text="⌄"
+                                                           Text="v"
                                                            Foreground="{StaticResource VsSubtleTextBrush}"
                                                            HorizontalAlignment="Center"
                                                            VerticalAlignment="Center"
@@ -182,11 +182,41 @@
             <Setter Property="BorderBrush" Value="{StaticResource VsBorderBrush}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </Setter.Value>
+            </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="#3E3E42"/>
                     <Setter Property="BorderBrush" Value="#5A5A60"/>
                 </Trigger>
+                <EventTrigger RoutedEvent="Button.PreviewMouseDown">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="0.97" Duration="0:0:0.055"/>
+                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="0.97" Duration="0:0:0.055"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+                <EventTrigger RoutedEvent="Button.PreviewMouseUp">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1" Duration="0:0:0.12"/>
+                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1" Duration="0:0:0.12"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+                <EventTrigger RoutedEvent="Button.MouseLeave">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1" Duration="0:0:0.10"/>
+                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1" Duration="0:0:0.10"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
             </Style.Triggers>
         </Style>
 
@@ -211,11 +241,33 @@
             <Setter Property="FontFamily" Value="Segoe MDL2 Assets"/>
             <Setter Property="FontSize" Value="18"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </Setter.Value>
+            </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="#3E3E42"/>
                     <Setter Property="Foreground" Value="{StaticResource VsTextBrush}"/>
                 </Trigger>
+                <EventTrigger RoutedEvent="Button.PreviewMouseDown">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="0.97" Duration="0:0:0.055"/>
+                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="0.97" Duration="0:0:0.055"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+                <EventTrigger RoutedEvent="Button.PreviewMouseUp">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1" Duration="0:0:0.12"/>
+                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1" Duration="0:0:0.12"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
             </Style.Triggers>
         </Style>
 
@@ -225,10 +277,32 @@
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="Padding" Value="10,8"/>
             <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </Setter.Value>
+            </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="{StaticResource VsSelectionBrush}"/>
                 </Trigger>
+                <EventTrigger RoutedEvent="Button.PreviewMouseDown">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="0.985" Duration="0:0:0.055"/>
+                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="0.985" Duration="0:0:0.055"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+                <EventTrigger RoutedEvent="Button.PreviewMouseUp">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)" To="1" Duration="0:0:0.10"/>
+                            <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)" To="1" Duration="0:0:0.10"/>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
             </Style.Triggers>
         </Style>
     </Window.Resources>
@@ -263,7 +337,9 @@
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
 
                 <DockPanel Margin="12,12,12,8">
@@ -277,7 +353,34 @@
                          Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                          ToolTip="按工具名称、描述或分组搜索"/>
 
-                <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto">
+                <StackPanel Grid.Row="2" Margin="8,0,8,8">
+                    <StackPanel Visibility="{Binding HasFavoriteTools, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <TextBlock Text="收藏工具" Margin="4,0,0,4" Foreground="{StaticResource VsMutedTextBrush}" FontSize="11"/>
+                        <ItemsControl ItemsSource="{Binding FavoriteToolItems}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type viewModels:ToolBrowserItem}">
+                                    <Button Style="{StaticResource ToolItemButtonStyle}" Click="ToolItemButton_Click" Tag="{Binding}" Margin="0,1" Padding="8,5">
+                                        <TextBlock Text="{Binding Tool.Name}" Foreground="{StaticResource VsTextBrush}" TextTrimming="CharacterEllipsis"/>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                    <StackPanel Visibility="{Binding HasRecentTools, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,6,0,0">
+                        <TextBlock Text="最近使用" Margin="4,0,0,4" Foreground="{StaticResource VsMutedTextBrush}" FontSize="11"/>
+                        <ItemsControl ItemsSource="{Binding RecentToolItems}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="{x:Type viewModels:ToolBrowserItem}">
+                                    <Button Style="{StaticResource ToolItemButtonStyle}" Click="ToolItemButton_Click" Tag="{Binding}" Margin="0,1" Padding="8,5">
+                                        <TextBlock Text="{Binding Tool.Name}" Foreground="{StaticResource VsTextBrush}" TextTrimming="CharacterEllipsis"/>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </StackPanel>
+
+                <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto">
                     <ItemsControl ItemsSource="{Binding VisibleToolItems}" Margin="6,0,6,10">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate DataType="{x:Type viewModels:ToolBrowserItem}">
@@ -295,6 +398,24 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
+
+                <Border Grid.Row="4" BorderBrush="{StaticResource VsBorderBrush}" BorderThickness="0,1,0,0" Padding="6">
+                    <StackPanel>
+                    <Button Style="{StaticResource ToolItemButtonStyle}" Click="SettingsButton_Click" ToolTip="打开设置中心" Margin="0,0,0,4">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="28"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" FontSize="15" Foreground="{StaticResource VsSubtleTextBrush}" VerticalAlignment="Center"/>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="设置" FontSize="13.5" FontWeight="SemiBold"/>
+                                <TextBlock Text="Preferences" Margin="0,3,0,0" FontSize="11.5" Foreground="{StaticResource VsMutedTextBrush}"/>
+                            </StackPanel>
+                        </Grid>
+                    </Button>
+                    </StackPanel>
+                </Border>
             </Grid>
         </Border>
 
@@ -325,10 +446,11 @@
                         </ComboBox>
                     </StackPanel>
                     <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
-                        <Button Content="清空" Style="{StaticResource CommandButtonStyle}" Margin="0,0,8,0" Command="{Binding ClearCommand}" Visibility="{Binding IsStandardTool, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                        <Button Content="{Binding PauseButtonText}" Style="{StaticResource CommandButtonStyle}" Margin="0,0,8,0" Command="{Binding PauseCommand}" Visibility="{Binding IsPausableTool, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <Button Content="收藏" Style="{StaticResource CommandButtonStyle}" Margin="0,0,8,0" Command="{Binding ToggleFavoriteCommand}" Click="CommandButton_Click"/>
+                        <Button Content="清空" Style="{StaticResource CommandButtonStyle}" Margin="0,0,8,0" Command="{Binding ClearCommand}" Click="CommandButton_Click" Visibility="{Binding IsStandardTool, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <Button Content="{Binding PauseButtonText}" Style="{StaticResource CommandButtonStyle}" Margin="0,0,8,0" Command="{Binding PauseCommand}" Click="CommandButton_Click" Visibility="{Binding IsPausableTool, Converter={StaticResource BoolToVisibilityConverter}}"/>
                         <Button Content="复制" Style="{StaticResource CommandButtonStyle}" Margin="0,0,8,0" Click="CopyButton_Click" Visibility="{Binding IsStandardTool, Converter={StaticResource BoolToVisibilityConverter}}"/>
-                        <Button Content="执行" MinWidth="88" Style="{StaticResource PrimaryCommandButtonStyle}" Command="{Binding ExecuteCommand}" Visibility="{Binding IsStandardTool, Converter={StaticResource BoolToVisibilityConverter}}"/>
+                        <Button Content="执行" MinWidth="88" Style="{StaticResource PrimaryCommandButtonStyle}" Command="{Binding ExecuteCommand}" Click="ExecuteButton_Click" Visibility="{Binding IsStandardTool, Converter={StaticResource BoolToVisibilityConverter}}"/>
                     </StackPanel>
                 </DockPanel>
             </Border>
@@ -403,6 +525,181 @@
             <Border Grid.Row="1" Margin="12" Background="{StaticResource VsPanelBrush}" BorderBrush="{StaticResource VsBorderBrush}" BorderThickness="1" Visibility="{Binding HasInteractiveView, Converter={StaticResource BoolToVisibilityConverter}}">
                 <ContentControl x:Name="InteractiveHost"/>
             </Border>
+
+            <Border x:Name="CopyrightWorkspace" Grid.Row="1" Margin="12" Background="{StaticResource VsPanelBrush}" BorderBrush="{StaticResource VsBorderBrush}" BorderThickness="1" Visibility="Collapsed">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Border Background="{StaticResource VsPanelAltBrush}" BorderBrush="{StaticResource VsBorderBrush}" BorderThickness="0,0,0,1" Padding="16,12">
+                        <DockPanel>
+                            <StackPanel>
+                                <TextBlock Text="设置" FontSize="24" FontWeight="SemiBold"/>
+                                <TextBlock Text="LCM 的工具箱 / License and Third-Party Notices" Margin="0,4,0,0" Foreground="{StaticResource VsSubtleTextBrush}" FontSize="13"/>
+                            </StackPanel>
+                        </DockPanel>
+                    </Border>
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="18">
+                            <TextBlock Text="常规" FontSize="16" FontWeight="SemiBold"/>
+                            <CheckBox Content="界面音效" IsChecked="{Binding IsUiSoundEnabled, Mode=TwoWay}" Margin="0,8,0,0" Click="SoundToggle_Click" MouseEnter="SoundToggle_MouseEnter"/>
+                            <CheckBox Content="启动时恢复上次工具" IsChecked="{Binding RestoreLastToolOnStartup, Mode=TwoWay}" Margin="0,8,0,0"/>
+                            <TextBlock Text="默认输出目录" Margin="0,14,0,6" Foreground="{StaticResource VsSubtleTextBrush}"/>
+                            <DockPanel LastChildFill="True" Margin="0,0,0,18">
+                                <Button DockPanel.Dock="Right" Content="浏览" Style="{StaticResource CommandButtonStyle}" Margin="8,0,0,0" Click="BrowseDefaultOutputButton_Click"/>
+                                <TextBox Text="{Binding DefaultOutputDirectory, UpdateSourceTrigger=PropertyChanged}"/>
+                            </DockPanel>
+
+                            <TextBlock Text="外观" FontSize="16" FontWeight="SemiBold"/>
+                            <ComboBox Width="220" HorizontalAlignment="Left" Margin="0,8,0,18" SelectedValuePath="Content" SelectedValue="{Binding Theme, Mode=TwoWay}">
+                                <ComboBoxItem Content="VS Purple"/>
+                                <ComboBoxItem Content="VS Blue"/>
+                            </ComboBox>
+
+                            <TextBlock Text="联网 / OCR" FontSize="16" FontWeight="SemiBold"/>
+                            <CheckBox Content="允许联网工具访问在线接口" IsChecked="{Binding IsNetworkEnabled, Mode=TwoWay}" Margin="0,8,0,0"/>
+                            <TextBlock Text="OCR.space API Key（默认 helloworld，仅适合试用；在线 OCR 会上传图片）" Margin="0,12,0,6" Foreground="{StaticResource VsSubtleTextBrush}" TextWrapping="Wrap"/>
+                            <TextBox Width="360" HorizontalAlignment="Left" Text="{Binding OcrSpaceApiKey, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Button Content="检查更新" Width="110" Style="{StaticResource CommandButtonStyle}" Margin="0,14,0,6" HorizontalAlignment="Left" Command="{Binding CheckUpdateCommand}" Click="CommandButton_Click"/>
+                            <TextBlock Text="{Binding UpdateStatusText}" Foreground="{StaticResource VsSubtleTextBrush}" TextWrapping="Wrap" Margin="0,0,0,18"/>
+
+                            <TextBlock Text="翻译" FontSize="16" FontWeight="SemiBold"/>
+                            <TextBlock Text="翻译工具会把文本发送到你选择的服务商；API Key 仅保存在本机 app-state.json。" Margin="0,8,0,8" Foreground="{StaticResource VsSubtleTextBrush}" TextWrapping="Wrap"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                <StackPanel Margin="0,0,12,0">
+                                    <TextBlock Text="默认引擎" Foreground="{StaticResource VsSubtleTextBrush}" Margin="0,0,0,5"/>
+                                    <ComboBox Width="190" SelectedValuePath="Content" SelectedValue="{Binding TranslationDefaultProvider, Mode=TwoWay}">
+                                        <ComboBoxItem Content="LibreTranslate"/>
+                                        <ComboBoxItem Content="Azure Translator"/>
+                                        <ComboBoxItem Content="DeepL"/>
+                                        <ComboBoxItem Content="Google Translate"/>
+                                        <ComboBoxItem Content="百度翻译"/>
+                                        <ComboBoxItem Content="网易有道"/>
+                                        <ComboBoxItem Content="OpenAI-compatible"/>
+                                        <ComboBoxItem Content="Ollama"/>
+                                    </ComboBox>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,12,0">
+                                    <TextBlock Text="默认源语言" Foreground="{StaticResource VsSubtleTextBrush}" Margin="0,0,0,5"/>
+                                    <ComboBox Width="120" SelectedValuePath="Content" SelectedValue="{Binding TranslationDefaultSourceLanguage, Mode=TwoWay}">
+                                        <ComboBoxItem Content="自动"/>
+                                        <ComboBoxItem Content="中文"/>
+                                        <ComboBoxItem Content="英文"/>
+                                        <ComboBoxItem Content="日文"/>
+                                        <ComboBoxItem Content="韩文"/>
+                                        <ComboBoxItem Content="法文"/>
+                                        <ComboBoxItem Content="德文"/>
+                                        <ComboBoxItem Content="西班牙文"/>
+                                        <ComboBoxItem Content="俄文"/>
+                                    </ComboBox>
+                                </StackPanel>
+                                <StackPanel>
+                                    <TextBlock Text="默认目标语言" Foreground="{StaticResource VsSubtleTextBrush}" Margin="0,0,0,5"/>
+                                    <ComboBox Width="120" SelectedValuePath="Content" SelectedValue="{Binding TranslationDefaultTargetLanguage, Mode=TwoWay}">
+                                        <ComboBoxItem Content="中文"/>
+                                        <ComboBoxItem Content="英文"/>
+                                        <ComboBoxItem Content="日文"/>
+                                        <ComboBoxItem Content="韩文"/>
+                                        <ComboBoxItem Content="法文"/>
+                                        <ComboBoxItem Content="德文"/>
+                                        <ComboBoxItem Content="西班牙文"/>
+                                        <ComboBoxItem Content="俄文"/>
+                                    </ComboBox>
+                                </StackPanel>
+                            </StackPanel>
+                            <TextBlock Text="LibreTranslate Endpoint" Foreground="{StaticResource VsSubtleTextBrush}" Margin="0,4,0,5"/>
+                            <TextBox Width="520" HorizontalAlignment="Left" Text="{Binding LibreTranslateEndpoint, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="LibreTranslate API Key（可选）" Foreground="{StaticResource VsSubtleTextBrush}" Margin="0,10,0,5"/>
+                            <TextBox Width="360" HorizontalAlignment="Left" Text="{Binding LibreTranslateApiKey, UpdateSourceTrigger=PropertyChanged}"/>
+
+                            <TextBlock Text="付费 API / 大模型配置" FontSize="14" FontWeight="SemiBold" Margin="0,14,0,8"/>
+                            <UniformGrid Columns="2" Margin="0,0,0,10">
+                                <StackPanel Margin="0,0,12,8">
+                                    <TextBlock Text="Azure Endpoint" Foreground="{StaticResource VsSubtleTextBrush}" Margin="0,0,0,5"/>
+                                    <TextBox Text="{Binding AzureEndpoint, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,12,8">
+                                    <TextBlock Text="Azure Region / Key" Foreground="{StaticResource VsSubtleTextBrush}" Margin="0,0,0,5"/>
+                                    <TextBox Text="{Binding AzureRegion, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+                                    <TextBox Text="{Binding AzureKey, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,12,8">
+                                    <TextBlock Text="DeepL URL / Key" Foreground="{StaticResource VsSubtleTextBrush}" Margin="0,0,0,5"/>
+                                    <TextBox Text="{Binding DeepLApiUrl, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+                                    <TextBox Text="{Binding DeepLApiKey, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,12,8">
+                                    <TextBlock Text="Google API Key" Foreground="{StaticResource VsSubtleTextBrush}" Margin="0,0,0,5"/>
+                                    <TextBox Text="{Binding GoogleApiKey, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,12,8">
+                                    <TextBlock Text="百度 App ID / Secret" Foreground="{StaticResource VsSubtleTextBrush}" Margin="0,0,0,5"/>
+                                    <TextBox Text="{Binding BaiduAppId, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+                                    <TextBox Text="{Binding BaiduSecret, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,12,8">
+                                    <TextBlock Text="有道 App Key / Secret" Foreground="{StaticResource VsSubtleTextBrush}" Margin="0,0,0,5"/>
+                                    <TextBox Text="{Binding YoudaoAppKey, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+                                    <TextBox Text="{Binding YoudaoAppSecret, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,12,8">
+                                    <TextBlock Text="OpenAI-compatible Base URL / Key / Model" Foreground="{StaticResource VsSubtleTextBrush}" Margin="0,0,0,5"/>
+                                    <TextBox Text="{Binding OpenAiBaseUrl, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+                                    <TextBox Text="{Binding OpenAiApiKey, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+                                    <TextBox Text="{Binding OpenAiModel, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                                <StackPanel Margin="0,0,12,8">
+                                    <TextBlock Text="Ollama Endpoint / Model" Foreground="{StaticResource VsSubtleTextBrush}" Margin="0,0,0,5"/>
+                                    <TextBox Text="{Binding OllamaEndpoint, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,6"/>
+                                    <TextBox Text="{Binding OllamaModel, UpdateSourceTrigger=PropertyChanged}"/>
+                                </StackPanel>
+                            </UniformGrid>
+                            <CheckBox Content="启用翻译术语表" IsChecked="{Binding TranslationUseGlossary, Mode=TwoWay}" Margin="0,0,0,6"/>
+                            <TextBox Width="520" Height="70" HorizontalAlignment="Left" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" Text="{Binding TranslationGlossary, UpdateSourceTrigger=PropertyChanged}"/>
+                            <TextBlock Text="实时翻译刷新间隔（毫秒，500-10000）" Margin="0,10,0,5" Foreground="{StaticResource VsSubtleTextBrush}"/>
+                            <TextBox Width="96" HorizontalAlignment="Left" Text="{Binding LiveRefreshMilliseconds, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,18"/>
+
+                            <TextBlock Text="任务" FontSize="16" FontWeight="SemiBold"/>
+                            <CheckBox Content="保存批处理任务历史" IsChecked="{Binding SaveTaskHistory, Mode=TwoWay}" Margin="0,8,0,0"/>
+                            <TextBlock Text="历史保留数量" Margin="0,12,0,6" Foreground="{StaticResource VsSubtleTextBrush}"/>
+                            <TextBox Width="96" HorizontalAlignment="Left" Text="{Binding TaskHistoryLimit, UpdateSourceTrigger=PropertyChanged}"/>
+                            <Button Content="清空任务历史" Width="120" Style="{StaticResource CommandButtonStyle}" Margin="0,14,0,18" HorizontalAlignment="Left" Command="{Binding ClearTaskHistoryCommand}" Click="CommandButton_Click"/>
+
+                            <TextBlock Text="数据" FontSize="16" FontWeight="SemiBold"/>
+                            <StackPanel Orientation="Horizontal" Margin="0,8,0,18">
+                                <Button Content="打开状态文件目录" Style="{StaticResource CommandButtonStyle}" Click="OpenStateFolderButton_Click"/>
+                                <Button Content="清空最近使用" Style="{StaticResource CommandButtonStyle}" Margin="8,0,0,0" Command="{Binding ClearRecentCommand}" Click="CommandButton_Click"/>
+                            </StackPanel>
+
+                            <TextBlock Text="关于..." FontSize="18" FontWeight="SemiBold" Margin="0,6,0,0"/>
+                            <TextBlock Text="Copyright (c) 2026 LCMasterSpark" FontSize="16" FontWeight="SemiBold"/>
+                            <TextBlock Text="LCM 的工具箱 is licensed under the MIT License. Source code, UI shell, tool definitions, and original application logic are maintained by LCMasterSpark." Margin="0,8,0,18" Foreground="{StaticResource VsSubtleTextBrush}" TextWrapping="Wrap"/>
+
+                            <TextBlock Text="Open Source Libraries" FontSize="16" FontWeight="SemiBold"/>
+                            <TextBlock Margin="0,8,0,18" Foreground="{StaticResource VsSubtleTextBrush}" TextWrapping="Wrap">
+MahApps.Metro - MIT
+ControlzEx - MIT
+XamlAnimatedGif - MIT
+QRCoder - MIT
+CsvHelper - MS-PL or Apache-2.0
+DocumentFormat.OpenXml - MIT
+PdfPig / UglyToad.PdfPig - Apache-2.0
+SixLabors.ImageSharp - Six Labors Split License
+                            </TextBlock>
+
+                            <TextBlock Text="Audio Assets" FontSize="16" FontWeight="SemiBold"/>
+                            <TextBlock Text="Kenney UI Audio by Kenney Vleugels (Kenney.nl), licensed Creative Commons Zero (CC0). Selected files are converted to WAV and bundled as short UI feedback sounds. Original license text is preserved in Assets/Sounds/KenneyUI/LICENSE-Kenney.txt." Margin="0,8,0,18" Foreground="{StaticResource VsSubtleTextBrush}" TextWrapping="Wrap"/>
+
+                            <TextBlock Text="Decorative Assets" FontSize="16" FontWeight="SemiBold"/>
+                            <TextBlock Text="The Marisa GIF is a user-provided decorative asset. It is not claimed as original project artwork or CC0 material; confirm its source license before public redistribution outside this personal toolbox release." Margin="0,8,0,18" Foreground="{StaticResource VsSubtleTextBrush}" TextWrapping="Wrap"/>
+
+                            <TextBlock Text="Privacy Note" FontSize="16" FontWeight="SemiBold"/>
+                            <TextBlock Text="The toolbox does not store tool input text, secrets, or output history. Local preferences, screen pointer settings, minesweeper stats, and the UI sound switch are saved in app-state.json next to the executable." Margin="0,8,0,0" Foreground="{StaticResource VsSubtleTextBrush}" TextWrapping="Wrap"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
         </Grid>
 
         <Border Grid.Row="0" Grid.Column="3" Background="{StaticResource VsPanelBrush}" BorderBrush="{StaticResource VsBorderBrush}" BorderThickness="1,0,0,0">
@@ -428,6 +725,7 @@
                 <Grid Grid.Row="2">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="188"/>
                     </Grid.RowDefinitions>
 
@@ -435,7 +733,81 @@
                         <StackPanel x:Name="ParametersPanel" Margin="12,0,12,14"/>
                     </ScrollViewer>
 
-                    <Border Grid.Row="1"
+                    <Expander Grid.Row="1"
+                              Margin="12,0,12,10"
+                              Foreground="{StaticResource VsTextBrush}"
+                              Background="{StaticResource VsPanelBrush}"
+                              BorderBrush="{StaticResource VsBorderBrush}"
+                              IsExpanded="False">
+                        <Expander.Header>
+                            <DockPanel LastChildFill="True">
+                                <TextBlock Text="&#x4EFB;&#x52A1;&#x961F;&#x5217;" FontWeight="SemiBold"/>
+                                <TextBlock DockPanel.Dock="Right"
+                                           Text="{Binding TaskHistory.Count, StringFormat={}{0} &#x6761;}"
+                                           Foreground="{StaticResource VsMutedTextBrush}"
+                                           FontSize="11"
+                                           Margin="10,0,0,0"/>
+                            </DockPanel>
+                        </Expander.Header>
+                        <Border BorderBrush="{StaticResource VsBorderBrush}" BorderThickness="1,0,1,1" Background="{StaticResource VsPanelAltBrush}">
+                            <ScrollViewer MaxHeight="220" VerticalScrollBarVisibility="Auto">
+                                <ItemsControl ItemsSource="{Binding TaskHistory}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Border BorderBrush="{StaticResource VsBorderBrush}" BorderThickness="0,0,0,1" Padding="8,7">
+                                                <Grid>
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                        <RowDefinition Height="Auto"/>
+                                                    </Grid.RowDefinitions>
+                                                    <DockPanel>
+                                                        <TextBlock Text="{Binding StatusLabel}"
+                                                                   DockPanel.Dock="Right"
+                                                                   Foreground="{StaticResource VsAccentHoverBrush}"
+                                                                   FontSize="11"
+                                                                   FontWeight="SemiBold"
+                                                                   Margin="8,0,0,0"/>
+                                                        <TextBlock Text="{Binding ToolName}" FontWeight="SemiBold" TextTrimming="CharacterEllipsis"/>
+                                                    </DockPanel>
+                                                    <TextBlock Grid.Row="1"
+                                                               Text="{Binding SummaryText}"
+                                                               Foreground="{StaticResource VsSubtleTextBrush}"
+                                                               FontSize="11"
+                                                               Margin="0,4,0,0"
+                                                               TextTrimming="CharacterEllipsis"/>
+                                                    <DockPanel Grid.Row="2" Margin="0,6,0,0">
+                                                        <Button DockPanel.Dock="Right"
+                                                                Content="&#x91CD;&#x8BD5;"
+                                                                Width="56"
+                                                                Height="24"
+                                                                Style="{StaticResource CommandButtonStyle}"
+                                                                Command="{Binding DataContext.RetryTaskCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                                CommandParameter="{Binding}"
+                                                                Visibility="{Binding CanRetry, Converter={StaticResource BoolToVisibilityConverter}}"
+                                                                Click="CommandButton_Click"/>
+                                                        <TextBlock Text="{Binding FinishedAtText}"
+                                                                   Foreground="{StaticResource VsMutedTextBrush}"
+                                                                   FontSize="11"
+                                                                   VerticalAlignment="Center"/>
+                                                    </DockPanel>
+                                                    <TextBlock Grid.Row="3"
+                                                               Text="{Binding ErrorMessage}"
+                                                               Foreground="#FFB8B8"
+                                                               FontSize="11"
+                                                               Margin="0,6,0,0"
+                                                               TextWrapping="Wrap"/>
+                                                </Grid>
+                                            </Border>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </Border>
+                    </Expander>
+
+                    <Border Grid.Row="2"
                             Margin="12,0,12,14"
                             BorderBrush="{StaticResource VsBorderBrush}"
                             BorderThickness="1"
@@ -450,14 +822,14 @@
             </Grid>
         </Border>
 
-        <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4" Background="{StaticResource VsAccentBrush}">
+        <Border x:Name="StatusBarBorder" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="4" Background="{StaticResource VsAccentBrush}">
             <Grid Margin="10,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="{Binding StatusText}" Foreground="White" FontSize="12" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
-                <TextBlock Grid.Column="1" Text="{Binding SelectedTool.GroupName}" Foreground="#DDEEFF" FontSize="12" VerticalAlignment="Center"/>
+                <TextBlock Grid.Column="1" Text="{Binding SelectedTool.GroupName}" Foreground="#F4E6FF" FontSize="12" VerticalAlignment="Center"/>
             </Grid>
         </Border>
     </Grid>

@@ -77,3 +77,42 @@ public sealed class AsyncRelayCommand(Func<Task> execute, Func<bool>? canExecute
 
     public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
 }
+
+/// <summary>
+/// 带参数的异步 ICommand 适配器，用于列表项按钮把当前记录直接交回 ViewModel。
+/// </summary>
+public sealed class AsyncRelayCommand<T>(Func<T, Task> execute, Func<T, bool>? canExecute = null) : ICommand
+{
+    private bool _isExecuting;
+
+    public event EventHandler? CanExecuteChanged;
+
+    public bool CanExecute(object? parameter)
+    {
+        return parameter is T typedParameter
+            && !_isExecuting
+            && (canExecute?.Invoke(typedParameter) ?? true);
+    }
+
+    public async void Execute(object? parameter)
+    {
+        if (parameter is not T typedParameter || !CanExecute(typedParameter))
+        {
+            return;
+        }
+
+        try
+        {
+            _isExecuting = true;
+            RaiseCanExecuteChanged();
+            await execute(typedParameter);
+        }
+        finally
+        {
+            _isExecuting = false;
+            RaiseCanExecuteChanged();
+        }
+    }
+
+    public void RaiseCanExecuteChanged() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+}

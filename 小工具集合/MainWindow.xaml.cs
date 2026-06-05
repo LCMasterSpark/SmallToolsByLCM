@@ -2,14 +2,18 @@
 // Copyright (c) 2026 LCMasterSpark. Licensed under the MIT License.
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
 using MahApps.Metro.Controls;
-using Microsoft.Win32;
 using 小工具集合.Models;
-using 小工具集合.Views.Generation;
+using 小工具集合.Services;
+using 小工具集合.Views.Controls;
 using 小工具集合.Views.FunLab;
+using 小工具集合.Views.Shell;
 using 小工具集合.ViewModels;
 
 namespace 小工具集合;
@@ -21,23 +25,26 @@ namespace 小工具集合;
 public partial class MainWindow : MetroWindow
 {
     private readonly MainWindowViewModel _viewModel;
+    private readonly SoundService _soundService;
+    private readonly IToolParameterDialogService _parameterDialogService;
+    private readonly DynamicParameterControlBuilder _parameterControlBuilder;
+    private readonly IInteractiveToolViewFactory _interactiveToolViewFactory;
     private bool _isToolBrowserCollapsed;
-    private static readonly Brush GeneratedLabelBrush = new SolidColorBrush(Color.FromRgb(200, 200, 200));
-    private static readonly Brush GeneratedTextBrush = new SolidColorBrush(Color.FromRgb(241, 241, 241));
-    private static readonly Brush GeneratedMutedBrush = new SolidColorBrush(Color.FromRgb(150, 150, 150));
-    private static readonly Brush GeneratedInputBrush = new SolidColorBrush(Color.FromRgb(31, 31, 31));
-    private static readonly Brush GeneratedButtonBrush = new SolidColorBrush(Color.FromRgb(45, 45, 48));
-    private static readonly Brush GeneratedButtonHoverBrush = new SolidColorBrush(Color.FromRgb(62, 62, 66));
-    private static readonly Brush GeneratedBorderBrush = new SolidColorBrush(Color.FromRgb(63, 63, 70));
-    private static readonly Brush GeneratedSelectionBrush = new SolidColorBrush(Color.FromRgb(9, 71, 113));
+    private bool _isShowingCopyright;
 
     public MainWindow()
     {
         InitializeComponent();
         _viewModel = new MainWindowViewModel();
+        _soundService = new SoundService { IsEnabled = _viewModel.IsUiSoundEnabled };
+        _parameterDialogService = new WindowsToolParameterDialogService();
+        _parameterControlBuilder = new DynamicParameterControlBuilder(_parameterDialogService);
+        _interactiveToolViewFactory = new InteractiveToolViewFactory();
         DataContext = _viewModel;
+        ApplyTheme(_viewModel.Theme);
         _viewModel.Parameters.CollectionChanged += Parameters_CollectionChanged;
         _viewModel.PropertyChanged += ViewModel_PropertyChanged;
+        _viewModel.ToolExecutionCompleted += ViewModel_ToolExecutionCompleted;
         BuildParameterControls();
         UpdateInteractiveHost();
     }
@@ -63,6 +70,8 @@ public partial class MainWindow : MetroWindow
 
     private void GroupButton_Click(object sender, RoutedEventArgs e)
     {
+        _soundService.Play(UiSound.Click);
+        HideCopyrightWorkspace();
         if (sender is Button { Tag: ToolGroup group })
         {
             _viewModel.SearchText = string.Empty;
@@ -72,14 +81,21 @@ public partial class MainWindow : MetroWindow
 
     private void ToolItemButton_Click(object sender, RoutedEventArgs e)
     {
+        _soundService.Play(UiSound.Click);
         if (sender is Button { Tag: ToolBrowserItem item })
         {
+            HideCopyrightWorkspace();
             _viewModel.SelectToolItem(item);
+            if (!string.IsNullOrWhiteSpace(item.Tool.InteractiveViewKey) && InteractiveHost.Content is null)
+            {
+                UpdateInteractiveHost();
+            }
         }
     }
 
     private void ToggleToolBrowserButton_Click(object sender, RoutedEventArgs e)
     {
+        _soundService.Play(UiSound.Click);
         _isToolBrowserCollapsed = !_isToolBrowserCollapsed;
         ToolBrowserPanel.Visibility = _isToolBrowserCollapsed ? Visibility.Collapsed : Visibility.Visible;
         ToolBrowserColumn.Width = _isToolBrowserCollapsed ? new GridLength(0) : new GridLength(286);
@@ -87,6 +103,7 @@ public partial class MainWindow : MetroWindow
 
     private void CopyButton_Click(object sender, RoutedEventArgs e)
     {
+        _soundService.Play(UiSound.Click);
         if (string.IsNullOrEmpty(_viewModel.OutputText))
         {
             _viewModel.StatusText = "没有可复制的输出。";
@@ -106,22 +123,158 @@ public partial class MainWindow : MetroWindow
     {
         if (e.PropertyName == nameof(MainWindowViewModel.SelectedTool))
         {
+            HideCopyrightWorkspace();
             UpdateInteractiveHost();
         }
+
+        if (e.PropertyName == nameof(MainWindowViewModel.IsUiSoundEnabled))
+        {
+            _soundService.IsEnabled = _viewModel.IsUiSoundEnabled;
+        }
+
+        if (e.PropertyName == nameof(MainWindowViewModel.Theme))
+        {
+            ApplyTheme(_viewModel.Theme);
+        }
+    }
+
+    private void ViewModel_ToolExecutionCompleted(object? sender, bool isSuccess)
+    {
+        _soundService.Play(isSuccess ? UiSound.Success : UiSound.Error);
+        FlashStatusBar(isSuccess ? Color.FromRgb(104, 33, 122) : Color.FromRgb(185, 38, 38));
+    }
+
+    private void CommandButton_Click(object sender, RoutedEventArgs e)
+    {
+        _soundService.Play(UiSound.Click);
+    }
+
+    private void ExecuteButton_Click(object sender, RoutedEventArgs e)
+    {
+        _soundService.Play(UiSound.Execute);
+    }
+
+    private void CopyrightButton_Click(object sender, RoutedEventArgs e)
+    {
+        _soundService.Play(UiSound.Click);
+        ShowSettingsWorkspace("关于与引用");
+    }
+
+    private void SettingsButton_Click(object sender, RoutedEventArgs e)
+    {
+        _soundService.Play(UiSound.Click);
+        ShowSettingsWorkspace("设置中心");
+    }
+
+    private void AboutButton_Click(object sender, RoutedEventArgs e)
+    {
+        _soundService.Play(UiSound.Click);
+        ShowSettingsWorkspace("关于与引用");
+    }
+
+    private void BrowseDefaultOutputButton_Click(object sender, RoutedEventArgs e)
+    {
+        _soundService.Play(UiSound.Click);
+        string? folder = _parameterDialogService.PickFolder();
+        if (!string.IsNullOrWhiteSpace(folder))
+        {
+            _viewModel.DefaultOutputDirectory = folder;
+        }
+    }
+
+    private void OpenStateFolderButton_Click(object sender, RoutedEventArgs e)
+    {
+        _soundService.Play(UiSound.Click);
+        Process.Start(new ProcessStartInfo
+        {
+            FileName = AppContext.BaseDirectory,
+            UseShellExecute = true
+        });
+    }
+
+    private void SoundToggle_Click(object sender, RoutedEventArgs e)
+    {
+        _soundService.Play(UiSound.Click);
+    }
+
+    private void SoundToggle_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+    {
+        _soundService.Play(UiSound.Hover);
+    }
+
+    private void ShowSettingsWorkspace(string statusText)
+    {
+        ShowCopyrightWorkspace();
+        _viewModel.StatusText = statusText;
+    }
+
+    private void ShowCopyrightWorkspace()
+    {
+        _isShowingCopyright = true;
+        DisposeInteractiveHost();
+        CopyrightWorkspace.Visibility = Visibility.Visible;
+        _viewModel.StatusText = "版权与引用";
+    }
+
+    private void HideCopyrightWorkspace()
+    {
+        if (!_isShowingCopyright)
+        {
+            return;
+        }
+
+        _isShowingCopyright = false;
+        CopyrightWorkspace.Visibility = Visibility.Collapsed;
+    }
+
+    private void FlashStatusBar(Color color)
+    {
+        if (StatusBarBorder.Background is not SolidColorBrush currentBrush)
+        {
+            return;
+        }
+
+        var flashBrush = new SolidColorBrush(color);
+        StatusBarBorder.Background = flashBrush;
+        var animation = new ColorAnimation
+        {
+            To = currentBrush.Color,
+            Duration = TimeSpan.FromMilliseconds(420),
+            EasingFunction = new QuadraticEase { EasingMode = EasingMode.EaseOut }
+        };
+        animation.Completed += (_, _) => StatusBarBorder.Background = currentBrush;
+        flashBrush.BeginAnimation(SolidColorBrush.ColorProperty, animation);
+    }
+
+    private void ApplyTheme(string theme)
+    {
+        if (theme == "VS Blue")
+        {
+            SetBrush("VsAccentBrush", Color.FromRgb(0, 122, 204));
+            SetBrush("VsAccentHoverBrush", Color.FromRgb(28, 151, 234));
+            SetBrush("VsSelectionBrush", Color.FromRgb(38, 79, 120));
+            GlowBrush = new SolidColorBrush(Color.FromRgb(0, 122, 204));
+        }
+        else
+        {
+            SetBrush("VsAccentBrush", Color.FromRgb(104, 33, 122));
+            SetBrush("VsAccentHoverBrush", Color.FromRgb(122, 47, 143));
+            SetBrush("VsSelectionBrush", Color.FromRgb(75, 45, 94));
+            GlowBrush = new SolidColorBrush(Color.FromRgb(104, 33, 122));
+        }
+    }
+
+    private void SetBrush(string key, Color color)
+    {
+        Resources[key] = new SolidColorBrush(color);
     }
 
     private void UpdateInteractiveHost()
     {
         DisposeInteractiveHost();
-        InteractiveHost.Content = _viewModel.SelectedTool.InteractiveViewKey switch
-        {
-            "powerChecker" => new PowerCheckerControl(),
-            "timePointer" => new TimePointerControl(),
-            "minesweeper" => new MinesweeperControl(),
-            "qrCode" => new QrCodeControl(),
-            "screenPointer" => new ScreenPointerControl(),
-            _ => null
-        };
+        // 互动工具生命周期热点：凡是带 overlay、计时器或后台状态的控件，
+        // 都必须在 DisposeInteractiveHost 中释放，避免切换工具后残留窗口。
+        InteractiveHost.Content = _interactiveToolViewFactory.Create(_viewModel.SelectedTool.InteractiveViewKey);
     }
 
     private void DisposeInteractiveHost()
@@ -141,368 +294,6 @@ public partial class MainWindow : MetroWindow
 
     private void BuildParameterControls()
     {
-        ParametersPanel.Children.Clear();
-
-        foreach (ToolParameterValue parameter in _viewModel.Parameters)
-        {
-            // ToolCatalog 定义参数元数据；这里把每个定义转换成具体 WPF 控件，
-            // 并同步控件值到运行时参数。
-            var block = new StackPanel
-            {
-                Orientation = Orientation.Vertical,
-                Margin = new Thickness(0, 0, 0, 14)
-            };
-
-            block.Children.Add(new TextBlock
-            {
-                Text = parameter.Definition.Name,
-                Margin = new Thickness(0, 0, 0, 6),
-                FontSize = 12.5,
-                Foreground = GeneratedLabelBrush
-            });
-
-            FrameworkElement input = parameter.Definition.Kind switch
-            {
-                ToolParameterKind.Password => CreatePasswordBox(parameter),
-                ToolParameterKind.Multiline => CreateMultilineBox(parameter),
-                ToolParameterKind.Combo => CreateComboBox(parameter),
-                ToolParameterKind.FileOpen => CreateFilePicker(parameter, true),
-                ToolParameterKind.FileSave => CreateFilePicker(parameter, false),
-                ToolParameterKind.FileList => CreateFileListPicker(parameter),
-                ToolParameterKind.Directory => CreateDirectoryPicker(parameter),
-                ToolParameterKind.Number => CreateNumberBox(parameter),
-                ToolParameterKind.CheckBox => CreateCheckBox(parameter),
-                ToolParameterKind.ReadOnly => CreateReadOnlyText(parameter),
-                _ => CreateTextBox(parameter)
-            };
-
-            block.Children.Add(input);
-            ParametersPanel.Children.Add(block);
-        }
-    }
-
-    private static TextBox CreateTextBox(ToolParameterValue parameter)
-    {
-        var textBox = new TextBox
-        {
-            Width = 260,
-            Height = 30,
-            Text = parameter.Value
-        };
-        ApplyGeneratedTextBoxStyle(textBox);
-        textBox.TextChanged += (_, _) => parameter.Value = textBox.Text;
-        return textBox;
-    }
-
-    private static PasswordBox CreatePasswordBox(ToolParameterValue parameter)
-    {
-        var passwordBox = new PasswordBox
-        {
-            Width = 260,
-            Height = 30
-        };
-        ApplyGeneratedPasswordBoxStyle(passwordBox);
-        passwordBox.PasswordChanged += (_, _) => parameter.Value = passwordBox.Password;
-        return passwordBox;
-    }
-
-    private static TextBox CreateMultilineBox(ToolParameterValue parameter)
-    {
-        var textBox = new TextBox
-        {
-            Width = 260,
-            Height = 88,
-            AcceptsReturn = true,
-            TextWrapping = TextWrapping.Wrap,
-            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-            Text = parameter.Value
-        };
-        ApplyGeneratedTextBoxStyle(textBox);
-        textBox.TextChanged += (_, _) => parameter.Value = textBox.Text;
-        return textBox;
-    }
-
-    private static ComboBox CreateComboBox(ToolParameterValue parameter)
-    {
-        var comboBox = new ComboBox
-        {
-            Width = 260,
-            Height = 30,
-            ItemsSource = parameter.Definition.Options,
-            SelectedItem = string.IsNullOrWhiteSpace(parameter.Value) ? parameter.Definition.DefaultValue : parameter.Value
-        };
-        ApplyGeneratedComboBoxStyle(comboBox);
-        comboBox.SelectionChanged += (_, _) => parameter.Value = comboBox.SelectedItem?.ToString() ?? string.Empty;
-        parameter.Value = comboBox.SelectedItem?.ToString() ?? parameter.Value;
-        return comboBox;
-    }
-
-    private static FrameworkElement CreateFilePicker(ToolParameterValue parameter, bool openFile)
-    {
-        var panel = new StackPanel
-        {
-            Width = 260,
-            Orientation = Orientation.Vertical
-        };
-
-        var textBox = new TextBox
-        {
-            Height = 30,
-            Text = parameter.Value
-        };
-        ApplyGeneratedTextBoxStyle(textBox);
-        textBox.TextChanged += (_, _) => parameter.Value = textBox.Text;
-
-        var button = new Button
-        {
-            Content = "浏览",
-            Width = 92,
-            Height = 30,
-            Margin = new Thickness(0, 8, 0, 0),
-            HorizontalAlignment = HorizontalAlignment.Left
-        };
-        ApplyGeneratedButtonStyle(button);
-        button.Click += (_, _) =>
-        {
-            string? fileName = openFile ? PickInputFile() : PickOutputFile();
-            if (!string.IsNullOrWhiteSpace(fileName))
-            {
-                textBox.Text = fileName;
-                parameter.Value = fileName;
-            }
-        };
-
-        panel.Children.Add(textBox);
-        panel.Children.Add(button);
-        return panel;
-    }
-
-    private static FrameworkElement CreateFileListPicker(ToolParameterValue parameter)
-    {
-        var panel = new StackPanel
-        {
-            Width = 260,
-            Orientation = Orientation.Vertical
-        };
-
-        var textBox = new TextBox
-        {
-            Height = 92,
-            AcceptsReturn = true,
-            TextWrapping = TextWrapping.NoWrap,
-            VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
-            HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
-            Text = parameter.Value
-        };
-        ApplyGeneratedTextBoxStyle(textBox);
-        textBox.TextChanged += (_, _) => parameter.Value = textBox.Text;
-
-        var buttons = new StackPanel
-        {
-            Orientation = Orientation.Horizontal,
-            Margin = new Thickness(0, 8, 0, 0)
-        };
-        var addButton = new Button { Content = "添加文件", Width = 110, Height = 34, Margin = new Thickness(0, 0, 8, 0) };
-        var clearButton = new Button { Content = "清空", Width = 76, Height = 34 };
-        ApplyGeneratedButtonStyle(addButton);
-        ApplyGeneratedButtonStyle(clearButton);
-        addButton.Click += (_, _) =>
-        {
-            string[] files = PickMultipleFiles();
-            if (files.Length == 0)
-            {
-                return;
-            }
-
-            // 保留已有队列，并把新选择的文件逐行追加，保持和 ToolProcessor.GetInputFiles 的解析方式一致。
-            string existing = string.IsNullOrWhiteSpace(textBox.Text) ? string.Empty : textBox.Text.TrimEnd() + Environment.NewLine;
-            textBox.Text = existing + string.Join(Environment.NewLine, files);
-            parameter.Value = textBox.Text;
-        };
-        clearButton.Click += (_, _) =>
-        {
-            textBox.Clear();
-            parameter.Value = string.Empty;
-        };
-        buttons.Children.Add(addButton);
-        buttons.Children.Add(clearButton);
-
-        panel.Children.Add(textBox);
-        panel.Children.Add(buttons);
-        return panel;
-    }
-
-    private static FrameworkElement CreateDirectoryPicker(ToolParameterValue parameter)
-    {
-        var panel = new StackPanel
-        {
-            Width = 260,
-            Orientation = Orientation.Vertical
-        };
-
-        var textBox = new TextBox
-        {
-            Height = 30,
-            Text = parameter.Value
-        };
-        ApplyGeneratedTextBoxStyle(textBox);
-        textBox.TextChanged += (_, _) => parameter.Value = textBox.Text;
-
-        var button = new Button
-        {
-            Content = "浏览目录",
-            Width = 104,
-            Height = 30,
-            Margin = new Thickness(0, 8, 0, 0),
-            HorizontalAlignment = HorizontalAlignment.Left
-        };
-        ApplyGeneratedButtonStyle(button);
-        button.Click += (_, _) =>
-        {
-            string? folder = PickFolder();
-            if (!string.IsNullOrWhiteSpace(folder))
-            {
-                textBox.Text = folder;
-                parameter.Value = folder;
-            }
-        };
-
-        panel.Children.Add(textBox);
-        panel.Children.Add(button);
-        return panel;
-    }
-
-    private static TextBox CreateNumberBox(ToolParameterValue parameter)
-    {
-        var textBox = new TextBox
-        {
-            Width = 96,
-            Height = 30,
-            Text = string.IsNullOrWhiteSpace(parameter.Value) ? parameter.Definition.DefaultValue : parameter.Value
-        };
-        ApplyGeneratedTextBoxStyle(textBox);
-        parameter.Value = textBox.Text;
-        textBox.TextChanged += (_, _) => parameter.Value = textBox.Text;
-        return textBox;
-    }
-
-    private static CheckBox CreateCheckBox(ToolParameterValue parameter)
-    {
-        string value = string.IsNullOrWhiteSpace(parameter.Value)
-            ? parameter.Definition.DefaultValue
-            : parameter.Value;
-        var checkBox = new CheckBox
-        {
-            VerticalAlignment = VerticalAlignment.Center,
-            Foreground = GeneratedTextBrush,
-            IsChecked = IsParameterTrue(value)
-        };
-        parameter.Value = checkBox.IsChecked == true ? "true" : "false";
-        checkBox.Checked += (_, _) => parameter.Value = "true";
-        checkBox.Unchecked += (_, _) => parameter.Value = "false";
-        return checkBox;
-    }
-
-    private static TextBlock CreateReadOnlyText(ToolParameterValue parameter)
-    {
-        return new TextBlock
-        {
-            Text = parameter.Definition.DefaultValue,
-            TextWrapping = TextWrapping.Wrap,
-            MaxWidth = 260,
-            VerticalAlignment = VerticalAlignment.Center,
-            Foreground = GeneratedMutedBrush
-        };
-    }
-
-    private static void ApplyGeneratedButtonStyle(Button button)
-    {
-        button.Background = GeneratedButtonBrush;
-        button.Foreground = GeneratedTextBrush;
-        button.BorderBrush = GeneratedBorderBrush;
-        button.BorderThickness = new Thickness(1);
-        button.Cursor = System.Windows.Input.Cursors.Hand;
-        button.Padding = new Thickness(8, 0, 8, 0);
-        button.MouseEnter += (_, _) => button.Background = GeneratedButtonHoverBrush;
-        button.MouseLeave += (_, _) => button.Background = GeneratedButtonBrush;
-    }
-
-    private static void ApplyGeneratedTextBoxStyle(TextBox textBox)
-    {
-        textBox.Background = GeneratedInputBrush;
-        textBox.Foreground = GeneratedTextBrush;
-        textBox.CaretBrush = GeneratedTextBrush;
-        textBox.SelectionBrush = GeneratedSelectionBrush;
-        textBox.BorderBrush = GeneratedBorderBrush;
-        textBox.BorderThickness = new Thickness(1);
-        textBox.Padding = new Thickness(8, 4, 8, 4);
-    }
-
-    private static void ApplyGeneratedPasswordBoxStyle(PasswordBox passwordBox)
-    {
-        passwordBox.Background = GeneratedInputBrush;
-        passwordBox.Foreground = GeneratedTextBrush;
-        passwordBox.CaretBrush = GeneratedTextBrush;
-        passwordBox.BorderBrush = GeneratedBorderBrush;
-        passwordBox.BorderThickness = new Thickness(1);
-        passwordBox.Padding = new Thickness(8, 4, 8, 4);
-    }
-
-    private static void ApplyGeneratedComboBoxStyle(ComboBox comboBox)
-    {
-        comboBox.Background = GeneratedInputBrush;
-        comboBox.Foreground = GeneratedTextBrush;
-        comboBox.BorderBrush = GeneratedBorderBrush;
-        comboBox.BorderThickness = new Thickness(1);
-        comboBox.Padding = new Thickness(6, 2, 6, 2);
-    }
-
-    private static bool IsParameterTrue(string value)
-    {
-        return value.Equals("true", StringComparison.OrdinalIgnoreCase) || value == "1" || value == "是";
-    }
-
-    private static string? PickInputFile()
-    {
-        var dialog = new OpenFileDialog
-        {
-            Filter = "所有文件 (*.*)|*.*",
-            CheckFileExists = true
-        };
-
-        return dialog.ShowDialog() == true ? dialog.FileName : null;
-    }
-
-    private static string? PickOutputFile()
-    {
-        var dialog = new SaveFileDialog
-        {
-            Filter = "所有文件 (*.*)|*.*",
-            AddExtension = true
-        };
-
-        return dialog.ShowDialog() == true ? dialog.FileName : null;
-    }
-
-    private static string[] PickMultipleFiles()
-    {
-        var dialog = new OpenFileDialog
-        {
-            Filter = "常用文件|*.mp4;*.jpg;*.jpeg;*.png;*.webp;*.raw;*.enc|所有文件 (*.*)|*.*",
-            Multiselect = true,
-            CheckFileExists = true
-        };
-
-        return dialog.ShowDialog() == true ? dialog.FileNames : [];
-    }
-
-    private static string? PickFolder()
-    {
-        var dialog = new OpenFolderDialog
-        {
-            Title = "选择输出目录"
-        };
-
-        return dialog.ShowDialog() == true ? dialog.FolderName : null;
+        _parameterControlBuilder.Build(ParametersPanel, _viewModel.Parameters);
     }
 }

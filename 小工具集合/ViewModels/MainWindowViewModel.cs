@@ -1,4 +1,4 @@
-// 文件作用：承载主窗口状态、工具选择、搜索、命令执行和偏好保存。
+﻿// 文件作用：承载主窗口状态、工具选择、搜索、命令执行和偏好保存。
 using System.Collections.ObjectModel;
 using System.Windows.Input;
 using 小工具集合.Models;
@@ -15,11 +15,15 @@ public sealed class ToolBrowserItem
 /// <summary>
 /// 协调主窗口中的工具选择、用户输入、命令状态和偏好持久化。
 /// </summary>
-public sealed class MainWindowViewModel : ObservableObject
+public sealed partial class MainWindowViewModel : ObservableObject
 {
     private readonly IToolProcessor _processor;
     private readonly PreferenceService _preferenceService;
+    private readonly TaskHistoryService _taskHistoryService;
+    private readonly UpdateCheckService _updateCheckService;
+    private readonly TranslationSettingsService _translationSettingsService;
     private readonly AppPreferences _preferences;
+    private readonly TranslationSettings _translationSettings;
     private ToolGroup _selectedGroup;
     private ToolDefinition _selectedTool;
     private ToolOperation _selectedOperation;
@@ -27,29 +31,49 @@ public sealed class MainWindowViewModel : ObservableObject
     private string _outputText = string.Empty;
     private string _statusText = "就绪";
     private string _searchText = string.Empty;
+    private string _updateStatusText = "尚未检查更新。";
     private bool _isSuccess = true;
     private bool _isBusy;
     private bool _isPaused;
     private readonly AsyncRelayCommand _executeCommand;
+    private readonly AsyncRelayCommand _checkUpdateCommand;
+    private readonly AsyncRelayCommand<TaskHistoryRecord> _retryTaskCommand;
 
     public MainWindowViewModel()
     {
         _processor = new ToolProcessor();
         _preferenceService = new PreferenceService();
+        _taskHistoryService = new TaskHistoryService();
+        _updateCheckService = new UpdateCheckService();
+        _translationSettingsService = new TranslationSettingsService();
         _preferences = _preferenceService.Load();
+        _translationSettings = _translationSettingsService.Load();
         Groups = ToolCatalog.Groups;
 
         // 尽量恢复上次选择的工具，再从静态目录推导出当前分组和第一个操作。
         ToolDefinition savedTool = ToolCatalog.FindTool(_preferences.LastToolId);
+        if (!_preferences.RestoreLastToolOnStartup)
+        {
+            savedTool = ToolCatalog.DefaultTool;
+        }
+
         _selectedGroup = Groups.FirstOrDefault(group => group.Tools.Contains(savedTool)) ?? Groups[0];
         _selectedTool = savedTool;
         _selectedOperation = _selectedTool.Operations[0];
         Parameters = [];
+        TaskHistory = new ObservableCollection<TaskHistoryRecord>(_taskHistoryService.Load());
         RebuildParameters();
 
         _executeCommand = new AsyncRelayCommand(ExecuteAsync, () => !IsBusy);
+        _checkUpdateCommand = new AsyncRelayCommand(CheckUpdateAsync, () => !IsBusy);
+        _retryTaskCommand = new AsyncRelayCommand<TaskHistoryRecord>(RetryTaskAsync, _ => !IsBusy);
         ExecuteCommand = _executeCommand;
+        ToggleFavoriteCommand = new RelayCommand(ToggleFavorite);
         ClearCommand = new RelayCommand(Clear);
+        ClearRecentCommand = new RelayCommand(ClearRecentTools);
+        ClearTaskHistoryCommand = new RelayCommand(ClearTaskHistory);
+        CheckUpdateCommand = _checkUpdateCommand;
+        RetryTaskCommand = _retryTaskCommand;
         PauseCommand = new RelayCommand(TogglePause, () => IsBusy && IsPausableTool);
     }
 
@@ -57,11 +81,25 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public ObservableCollection<ToolParameterValue> Parameters { get; }
 
+    public ObservableCollection<TaskHistoryRecord> TaskHistory { get; }
+
     public ICommand ExecuteCommand { get; }
+
+    public ICommand ToggleFavoriteCommand { get; }
 
     public ICommand ClearCommand { get; }
 
+    public ICommand ClearRecentCommand { get; }
+
+    public ICommand ClearTaskHistoryCommand { get; }
+
+    public ICommand CheckUpdateCommand { get; }
+
+    public ICommand RetryTaskCommand { get; }
+
     public ICommand PauseCommand { get; }
+
+    public event EventHandler<bool>? ToolExecutionCompleted;
 
     public ToolGroup SelectedGroup
     {
@@ -121,7 +159,13 @@ public sealed class MainWindowViewModel : ObservableObject
                 OutputText = string.Empty;
                 StatusText = $"已选择：{value.Name}";
                 _preferences.LastToolId = value.Id;
+                AddRecentTool(value.Id);
                 SavePreferences();
+                OnPropertyChanged(nameof(FavoriteToolItems));
+                OnPropertyChanged(nameof(RecentToolItems));
+                OnPropertyChanged(nameof(HasFavoriteTools));
+                OnPropertyChanged(nameof(HasRecentTools));
+                OnPropertyChanged(nameof(IsSelectedToolFavorite));
                 OnPropertyChanged(nameof(HasInput));
                 OnPropertyChanged(nameof(HasInteractiveView));
                 OnPropertyChanged(nameof(IsStandardTool));
@@ -171,6 +215,12 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
+    public string UpdateStatusText
+    {
+        get => _updateStatusText;
+        set => SetProperty(ref _updateStatusText, value);
+    }
+
     public bool IsSuccess
     {
         get => _isSuccess;
@@ -181,13 +231,23 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public string WarningText => SelectedTool.Warning;
 
+    public IReadOnlyList<ToolBrowserItem> FavoriteToolItems => BuildPinnedToolItems(_preferences.FavoriteToolIds);
+
+    public IReadOnlyList<ToolBrowserItem> RecentToolItems => BuildPinnedToolItems(_preferences.RecentToolIds);
+
+    public bool HasFavoriteTools => FavoriteToolItems.Count > 0;
+
+    public bool HasRecentTools => RecentToolItems.Count > 0;
+
+    public bool IsSelectedToolFavorite => _preferences.FavoriteToolIds.Contains(SelectedTool.Id, StringComparer.Ordinal);
+
     public bool HasInput => SelectedTool.RequiresInput;
 
     public bool HasInteractiveView => !string.IsNullOrWhiteSpace(SelectedTool.InteractiveViewKey);
 
     public bool IsStandardTool => !HasInteractiveView;
 
-    public bool IsPausableTool => SelectedTool.Id is "fileEncode" or "mp4ToMp3" or "imageConvert" or "fileHash" or "imageCompress" or "csvCleaner" or "excelSheetMerge" or "wordTextExtract" or "officeImageExtract" or "wordBatchReplace" or "excelCsvTools" or "excelToCsvBatch" or "csvToExcel" or "wordMerge" or "pptTextExtract" or "officeMetadata" or "pdfTools" or "pdfInfo" or "pdfTextExtract" or "pdfImageExtract" or "pdfToWordLite" or "localOfficeConvert" or "pdfToWordLocal" or "officeToPdfLocal" or "batchOfficeConvert";
+    public bool IsPausableTool => IsPausableToolId(SelectedTool.Id);
 
     // 文件队列即使尚未开始执行也视为待处理工作，
     // 避免关闭程序时误丢已经准备好的批处理列表。
@@ -244,104 +304,322 @@ public sealed class MainWindowViewModel : ObservableObject
         }
     }
 
-    public async Task ExecuteAsync()
+    public bool IsUiSoundEnabled
     {
-        // 将运行时参数摊平成字典，避免 ToolProcessor 依赖 WPF 控件或绑定对象。
-        var request = new ToolRequest
+        get => _preferences.IsUiSoundEnabled;
+        set
         {
-            ToolId = SelectedTool.Id,
-            OperationId = SelectedOperation.Id,
-            Input = HasInput ? InputText : string.Empty,
-            Parameters = Parameters.ToDictionary(parameter => parameter.Definition.Id, parameter => parameter.Value)
-        };
-
-        IsBusy = true;
-        IsPaused = false;
-        StatusText = "正在处理...";
-
-        try
-        {
-            ToolResult result = await _processor.ExecuteAsync(request, new ToolExecutionContext(() => IsPaused));
-            IsSuccess = result.Success;
-            OutputText = result.Success ? result.Output : string.Empty;
-            StatusText = result.Message;
-        }
-        finally
-        {
-            IsPaused = false;
-            IsBusy = false;
-            OnPropertyChanged(nameof(HasQueuedWork));
-            OnPropertyChanged(nameof(HasActiveOrQueuedWork));
-        }
-    }
-
-    public void Clear()
-    {
-        InputText = string.Empty;
-        OutputText = string.Empty;
-        RebuildParameters();
-
-        StatusText = "已清空";
-        IsSuccess = true;
-        OnPropertyChanged(nameof(HasQueuedWork));
-        OnPropertyChanged(nameof(HasActiveOrQueuedWork));
-    }
-
-    public void SelectToolItem(ToolBrowserItem item)
-    {
-        if (item.Group != SelectedGroup)
-        {
-            SelectedGroup = item.Group;
-        }
-
-        SelectedTool = item.Tool;
-        OnPropertyChanged(nameof(VisibleToolItems));
-    }
-
-    private void RebuildParameters()
-    {
-        // 切换工具时重建运行时参数集合，UI 层会据此重新生成对应控件。
-        Parameters.Clear();
-        foreach (ToolParameterDefinition definition in SelectedTool.Parameters)
-        {
-            Parameters.Add(new ToolParameterValue
+            if (_preferences.IsUiSoundEnabled == value)
             {
-                Definition = definition,
-                Value = definition.DefaultValue
-            });
+                return;
+            }
+
+            _preferences.IsUiSoundEnabled = value;
+            SavePreferences();
+            OnPropertyChanged();
         }
     }
 
-    private void SavePreferences()
+    public string Theme
     {
-        _preferenceService.Save(_preferences);
-    }
-
-    private void TogglePause()
-    {
-        if (!IsBusy || !IsPausableTool)
+        get => _preferences.Theme;
+        set
         {
-            return;
+            if (_preferences.Theme == value)
+            {
+                return;
+            }
+
+            _preferences.Theme = value;
+            SavePreferences();
+            OnPropertyChanged();
         }
-
-        IsPaused = !IsPaused;
-        StatusText = IsPaused ? "已暂停，当前文件处理完成后会停在下一个文件前。" : "继续处理...";
     }
 
-    private static bool ToolMatchesSearch(ToolGroup group, ToolDefinition tool, string query)
+    public string DefaultOutputDirectory
     {
-        return string.IsNullOrWhiteSpace(query)
-            || group.Name.Contains(query, StringComparison.OrdinalIgnoreCase)
-            || tool.Name.Contains(query, StringComparison.OrdinalIgnoreCase)
-            || tool.Description.Contains(query, StringComparison.OrdinalIgnoreCase);
-    }
-
-    private void RaiseCommandStates()
-    {
-        _executeCommand.RaiseCanExecuteChanged();
-        if (PauseCommand is RelayCommand pauseCommand)
+        get => _preferences.DefaultOutputDirectory;
+        set
         {
-            pauseCommand.RaiseCanExecuteChanged();
+            if (_preferences.DefaultOutputDirectory == value)
+            {
+                return;
+            }
+
+            _preferences.DefaultOutputDirectory = value;
+            SavePreferences();
+            OnPropertyChanged();
         }
     }
+
+    public bool RestoreLastToolOnStartup
+    {
+        get => _preferences.RestoreLastToolOnStartup;
+        set
+        {
+            if (_preferences.RestoreLastToolOnStartup == value)
+            {
+                return;
+            }
+
+            _preferences.RestoreLastToolOnStartup = value;
+            SavePreferences();
+            OnPropertyChanged();
+        }
+    }
+
+    public bool IsNetworkEnabled
+    {
+        get => _preferences.IsNetworkEnabled;
+        set
+        {
+            if (_preferences.IsNetworkEnabled == value)
+            {
+                return;
+            }
+
+            _preferences.IsNetworkEnabled = value;
+            SavePreferences();
+            OnPropertyChanged();
+        }
+    }
+
+    public string OcrSpaceApiKey
+    {
+        get => _preferences.OcrSpaceApiKey;
+        set
+        {
+            if (_preferences.OcrSpaceApiKey == value)
+            {
+                return;
+            }
+
+            _preferences.OcrSpaceApiKey = value;
+            SavePreferences();
+            OnPropertyChanged();
+        }
+    }
+
+    public string TranslationDefaultProvider
+    {
+        get => _translationSettings.DefaultProvider;
+        set
+        {
+            if (_translationSettings.DefaultProvider == value)
+            {
+                return;
+            }
+
+            _translationSettings.DefaultProvider = value;
+            SaveTranslationSettings();
+            OnPropertyChanged();
+        }
+    }
+
+    public string TranslationDefaultSourceLanguage
+    {
+        get => _translationSettings.DefaultSourceLanguage;
+        set
+        {
+            if (_translationSettings.DefaultSourceLanguage == value)
+            {
+                return;
+            }
+
+            _translationSettings.DefaultSourceLanguage = value;
+            SaveTranslationSettings();
+            OnPropertyChanged();
+        }
+    }
+
+    public string TranslationDefaultTargetLanguage
+    {
+        get => _translationSettings.DefaultTargetLanguage;
+        set
+        {
+            if (_translationSettings.DefaultTargetLanguage == value)
+            {
+                return;
+            }
+
+            _translationSettings.DefaultTargetLanguage = value;
+            SaveTranslationSettings();
+            OnPropertyChanged();
+        }
+    }
+
+    public string LibreTranslateEndpoint
+    {
+        get => _translationSettings.LibreTranslateEndpoint;
+        set => SetTranslationString(_translationSettings.LibreTranslateEndpoint, value, v => _translationSettings.LibreTranslateEndpoint = v);
+    }
+
+    public string LibreTranslateApiKey
+    {
+        get => _translationSettings.LibreTranslateApiKey;
+        set => SetTranslationString(_translationSettings.LibreTranslateApiKey, value, v => _translationSettings.LibreTranslateApiKey = v);
+    }
+
+    public string AzureEndpoint
+    {
+        get => _translationSettings.AzureEndpoint;
+        set => SetTranslationString(_translationSettings.AzureEndpoint, value, v => _translationSettings.AzureEndpoint = v);
+    }
+
+    public string AzureRegion
+    {
+        get => _translationSettings.AzureRegion;
+        set => SetTranslationString(_translationSettings.AzureRegion, value, v => _translationSettings.AzureRegion = v);
+    }
+
+    public string AzureKey
+    {
+        get => _translationSettings.AzureKey;
+        set => SetTranslationString(_translationSettings.AzureKey, value, v => _translationSettings.AzureKey = v);
+    }
+
+    public string DeepLApiUrl
+    {
+        get => _translationSettings.DeepLApiUrl;
+        set => SetTranslationString(_translationSettings.DeepLApiUrl, value, v => _translationSettings.DeepLApiUrl = v);
+    }
+
+    public string DeepLApiKey
+    {
+        get => _translationSettings.DeepLApiKey;
+        set => SetTranslationString(_translationSettings.DeepLApiKey, value, v => _translationSettings.DeepLApiKey = v);
+    }
+
+    public string GoogleApiKey
+    {
+        get => _translationSettings.GoogleApiKey;
+        set => SetTranslationString(_translationSettings.GoogleApiKey, value, v => _translationSettings.GoogleApiKey = v);
+    }
+
+    public string BaiduAppId
+    {
+        get => _translationSettings.BaiduAppId;
+        set => SetTranslationString(_translationSettings.BaiduAppId, value, v => _translationSettings.BaiduAppId = v);
+    }
+
+    public string BaiduSecret
+    {
+        get => _translationSettings.BaiduSecret;
+        set => SetTranslationString(_translationSettings.BaiduSecret, value, v => _translationSettings.BaiduSecret = v);
+    }
+
+    public string YoudaoAppKey
+    {
+        get => _translationSettings.YoudaoAppKey;
+        set => SetTranslationString(_translationSettings.YoudaoAppKey, value, v => _translationSettings.YoudaoAppKey = v);
+    }
+
+    public string YoudaoAppSecret
+    {
+        get => _translationSettings.YoudaoAppSecret;
+        set => SetTranslationString(_translationSettings.YoudaoAppSecret, value, v => _translationSettings.YoudaoAppSecret = v);
+    }
+
+    public string OpenAiBaseUrl
+    {
+        get => _translationSettings.OpenAiBaseUrl;
+        set => SetTranslationString(_translationSettings.OpenAiBaseUrl, value, v => _translationSettings.OpenAiBaseUrl = v);
+    }
+
+    public string OpenAiApiKey
+    {
+        get => _translationSettings.OpenAiApiKey;
+        set => SetTranslationString(_translationSettings.OpenAiApiKey, value, v => _translationSettings.OpenAiApiKey = v);
+    }
+
+    public string OpenAiModel
+    {
+        get => _translationSettings.OpenAiModel;
+        set => SetTranslationString(_translationSettings.OpenAiModel, value, v => _translationSettings.OpenAiModel = v);
+    }
+
+    public string OllamaEndpoint
+    {
+        get => _translationSettings.OllamaEndpoint;
+        set => SetTranslationString(_translationSettings.OllamaEndpoint, value, v => _translationSettings.OllamaEndpoint = v);
+    }
+
+    public string OllamaModel
+    {
+        get => _translationSettings.OllamaModel;
+        set => SetTranslationString(_translationSettings.OllamaModel, value, v => _translationSettings.OllamaModel = v);
+    }
+
+    public bool TranslationUseGlossary
+    {
+        get => _translationSettings.UseGlossary;
+        set
+        {
+            if (_translationSettings.UseGlossary == value)
+            {
+                return;
+            }
+
+            _translationSettings.UseGlossary = value;
+            SaveTranslationSettings();
+            OnPropertyChanged();
+        }
+    }
+
+    public string TranslationGlossary
+    {
+        get => _translationSettings.Glossary;
+        set => SetTranslationString(_translationSettings.Glossary, value, v => _translationSettings.Glossary = v);
+    }
+
+    public int LiveRefreshMilliseconds
+    {
+        get => _translationSettings.LiveRefreshMilliseconds;
+        set
+        {
+            int clamped = Math.Clamp(value, 500, 10000);
+            if (_translationSettings.LiveRefreshMilliseconds == clamped)
+            {
+                return;
+            }
+
+            _translationSettings.LiveRefreshMilliseconds = clamped;
+            SaveTranslationSettings();
+            OnPropertyChanged();
+        }
+    }
+
+    public bool SaveTaskHistory
+    {
+        get => _preferences.SaveTaskHistory;
+        set
+        {
+            if (_preferences.SaveTaskHistory == value)
+            {
+                return;
+            }
+
+            _preferences.SaveTaskHistory = value;
+            SavePreferences();
+            OnPropertyChanged();
+        }
+    }
+
+    public int TaskHistoryLimit
+    {
+        get => _preferences.TaskHistoryLimit;
+        set
+        {
+            int clamped = Math.Clamp(value, 1, 500);
+            if (_preferences.TaskHistoryLimit == clamped)
+            {
+                return;
+            }
+
+            _preferences.TaskHistoryLimit = clamped;
+            SavePreferences();
+            OnPropertyChanged();
+        }
+    }
+
 }

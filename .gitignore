@@ -34,3 +34,6 @@ _ReSharper*/
 Thumbs.db
 *.tmp
 *.bak
+
+## Local code intelligence indexes
+.codegraph/

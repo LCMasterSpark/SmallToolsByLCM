@@ -10,10 +10,21 @@ namespace 小工具集合.Services;
 /// </summary>
 public sealed class AppPreferences
 {
-    public string Theme { get; set; } = "Light";
+    public string Theme { get; set; } = "VS Purple";
     public string LastToolId { get; set; } = "base64";
     public double Width { get; set; } = 1100;
     public double Height { get; set; } = 760;
+    public bool IsUiSoundEnabled { get; set; } = true;
+    public List<string> FavoriteToolIds { get; set; } = [];
+    public List<string> RecentToolIds { get; set; } = [];
+    public string DefaultOutputDirectory { get; set; } = string.Empty;
+    public bool RestoreLastToolOnStartup { get; set; } = true;
+    public bool IsNetworkEnabled { get; set; } = true;
+    public string OcrSpaceApiKey { get; set; } = "helloworld";
+    public string OcrPriority { get; set; } = "OnlineThenWindows";
+    public bool SaveTaskHistory { get; set; } = true;
+    public int TaskHistoryLimit { get; set; } = 50;
+    public string FailedTaskRetryPolicy { get; set; } = "RetryFailedOnly";
 }
 
 /// <summary>

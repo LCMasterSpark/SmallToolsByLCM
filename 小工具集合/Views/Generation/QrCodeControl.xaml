@@ -10,7 +10,7 @@
         <SolidColorBrush x:Key="TextBrush" Color="#F1F1F1"/>
         <SolidColorBrush x:Key="MutedBrush" Color="#969696"/>
         <SolidColorBrush x:Key="SubtleBrush" Color="#C8C8C8"/>
-        <SolidColorBrush x:Key="AccentBrush" Color="#007ACC"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#68217A"/>
         <SolidColorBrush x:Key="InputBrush" Color="#1F1F1F"/>
 
         <Style x:Key="SectionBorderStyle" TargetType="Border">

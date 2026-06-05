@@ -60,96 +60,12 @@ public sealed partial class ToolProcessor : IToolProcessor
     {
         try
         {
-            // ToolCatalog 负责可见的工具元数据；这里把元数据 Id
-            // 映射到运行时真正执行的实现。
-            string output = request.ToolId switch
-            {
-                "base64" => Base64(request),
-                "url" => request.OperationId switch
-                {
-                    "encode" => WebUtility.UrlEncode(request.Input),
-                    "decode" => WebUtility.UrlDecode(request.Input),
-                    "analyze" => AnalyzeUrl(request.Input),
-                    _ => throw new NotSupportedException("暂不支持该 URL 操作。")
-                },
-                "html" => request.OperationId == "encode" ? WebUtility.HtmlEncode(request.Input) : WebUtility.HtmlDecode(request.Input),
-                "unicode" => UnicodeEscape(request),
-                "json" => Json(request),
-                "xml" => Xml(request),
-                "jwt" => ParseJwt(request.Input),
-                "regexTest" => TestRegex(request),
-                "textDiff" => DiffText(request),
-                "sha256" => Hash(request.Input, SHA256.HashData),
-                "sha512" => Hash(request.Input, SHA512.HashData),
-                "md5" => Hash(request.Input, MD5.HashData),
-                "hmacSha256" => HmacSha256(request),
-                "aesGcm" => request.OperationId == "encrypt" ? EncryptAes(request) : DecryptAes(request),
-                "encodeCrypto" => request.OperationId == "encrypt" ? EncryptAes(request, "ENCD") : DecryptAes(request, "ENCD"),
-                "rsaOaep" => request.OperationId == "encrypt" ? EncryptRsa(request) : DecryptRsa(request),
-                "fileEncode" => EncodeFiles(request),
-                "mp4ToMp3" => ExtractMp3Batch(request),
-                "imageConvert" => ConvertImages(request),
-                "fileHash" => HashFiles(request),
-                "imageCompress" => CompressImages(request),
-                "csvCleaner" => CleanCsvFiles(request),
-                "excelSheetMerge" => MergeExcelSheets(request),
-                "wordTextExtract" => ExtractWordText(request),
-                "officeImageExtract" => ExtractOfficeImages(request),
-                "wordBatchReplace" => ReplaceWordTextBatch(request),
-                "excelCsvTools" => ExecuteExcelCsvTool(request),
-                "excelToCsvBatch" => ExportExcelToCsvBatch(request),
-                "csvToExcel" => ConvertCsvToExcel(request),
-                "wordMerge" => MergeWordDocuments(request),
-                "pptTextExtract" => ExtractPptText(request),
-                "officeMetadata" => InspectOfficeMetadata(request),
-                "pdfTools" => ExecutePdfTool(request),
-                "pdfInfo" => InspectPdfInfo(request),
-                "pdfTextExtract" => ExtractPdfText(request),
-                "pdfImageExtract" => ExtractPdfImages(request),
-                "pdfToWordLite" => ConvertPdfToWordLite(request),
-                "localOfficeEngineCheck" => CheckLocalOfficeEngines(),
-                "localOfficeConvert" => ExecuteLocalOfficeConvertTool(request),
-                "pdfToWordLocal" => ConvertPdfToWordLocal(request),
-                "officeToPdfLocal" => ConvertOfficeToPdfLocal(request),
-                "batchOfficeConvert" => ConvertOfficeBatch(request),
-                "httpRequest" => SendHttpRequest(request),
-                "urlParams" => ParseUrlParameters(request.Input),
-                "headerFormat" => FormatHeaders(request.Input),
-                "cookieFormat" => FormatCookies(request.Input),
-                "ping" => PingHost(request),
-                "portCheck" => CheckPort(request),
-                "portUsage" => QueryPortUsage(request.Input),
-                "dnsLookup" => LookupDns(request),
-                "publicIp" => QueryPublicIp(),
-                "curlGenerator" => GenerateCurl(request),
-                "hostsReset" => ResetHosts(request),
-                "proxyReset" => ResetProxy(request),
-                "networkReset" => ResetNetwork(request),
-                "uuid" => Guid.NewGuid().ToString("D"),
-                "timestamp" => Timestamp(request),
-                "passwordGenerator" => GeneratePasswords(request),
-                "choicePicker" => PickChoice(request),
-                "shuffleLines" => ShuffleLines(request),
-                "randomNumber" => GenerateRandomNumbers(request),
-                "diceRoller" => RollDice(request),
-                "reverseText" => ReverseFunText(request),
-                "emojiWrap" => WrapWithEmoji(request),
-                "mockingText" => MockText(request),
-                "zalgoText" => GlitchText(request),
-                "commitMessage" => GenerateCommitMessages(request),
-                "variableName" => GenerateVariableNames(request),
-                "fakeLog" => GenerateFakeLog(request),
-                "excuseGenerator" => GenerateExcuse(request),
-                "onlineHitokoto" => QueryOnlineHitokoto(request),
-                "onlinePoemLine" => QueryOnlinePoemLine(),
-                "weatherCard" => QueryWeatherCard(request.Input),
-                "ipInfoCard" => QueryIpInfoCard(request.Input),
-                _ => throw new NotSupportedException("暂不支持该工具。")
-            };
+            // ToolCatalog 负责可见元数据；ToolHandlerRegistry 负责把工具 Id 路由到执行实现。
+            string output = Handlers.GetRequired(request.ToolId).Execute(request);
 
             return ToolResult.Ok(output ?? string.Empty);
         }
-        catch (Exception ex) when (ex is FormatException or JsonException or XmlException or CryptographicException or InvalidOperationException or ArgumentException or IOException or Win32Exception or HttpRequestException or CsvHelperException or OpenXmlPackageException)
+        catch (Exception ex) when (ex is FormatException or JsonException or XmlException or CryptographicException or InvalidOperationException or ArgumentException or IOException or Win32Exception or HttpRequestException or TaskCanceledException or CsvHelperException or OpenXmlPackageException)
         {
             return ToolResult.Fail(ex.Message);
         }
@@ -158,8 +74,8 @@ public sealed partial class ToolProcessor : IToolProcessor
     public Task<ToolResult> ExecuteAsync(ToolRequest request, ToolExecutionContext context)
     {
         // 大多数工具都是短小的 CPU/字符串操作，可以复用同步执行路径。
-        // 批量文件工具单独分支处理，便于在队列文件之间暂停。
-        if (request.ToolId is not ("fileEncode" or "mp4ToMp3" or "imageConvert" or "fileHash" or "imageCompress" or "csvCleaner" or "excelSheetMerge" or "wordTextExtract" or "officeImageExtract" or "wordBatchReplace" or "excelCsvTools" or "excelToCsvBatch" or "csvToExcel" or "wordMerge" or "pptTextExtract" or "officeMetadata" or "pdfTools" or "pdfInfo" or "pdfTextExtract" or "pdfImageExtract" or "pdfToWordLite" or "localOfficeConvert" or "pdfToWordLocal" or "officeToPdfLocal" or "batchOfficeConvert"))
+        // 批处理能力由 handler 自己声明，避免 ViewModel/Processor 维护超长 toolId 清单。
+        if (!Handlers.IsPausable(request.ToolId))
         {
             return Task.Run(() => Execute(request));
         }
@@ -168,39 +84,11 @@ public sealed partial class ToolProcessor : IToolProcessor
         {
             try
             {
-                string output = request.ToolId switch
-                {
-                    "fileEncode" => EncodeFiles(request, context),
-                    "mp4ToMp3" => ExtractMp3Batch(request, context),
-                    "imageConvert" => ConvertImages(request, context),
-                    "fileHash" => HashFiles(request, context),
-                    "imageCompress" => CompressImages(request, context),
-                    "csvCleaner" => CleanCsvFiles(request, context),
-                    "excelSheetMerge" => MergeExcelSheets(request, context),
-                    "wordTextExtract" => ExtractWordText(request, context),
-                    "officeImageExtract" => ExtractOfficeImages(request, context),
-                    "wordBatchReplace" => ReplaceWordTextBatch(request, context),
-                    "excelCsvTools" => ExecuteExcelCsvTool(request, context),
-                    "excelToCsvBatch" => ExportExcelToCsvBatch(request, context),
-                    "csvToExcel" => ConvertCsvToExcel(request, context),
-                    "wordMerge" => MergeWordDocuments(request, context),
-                    "pptTextExtract" => ExtractPptText(request, context),
-                    "officeMetadata" => InspectOfficeMetadata(request, context),
-                    "pdfTools" => ExecutePdfTool(request, context),
-                    "pdfInfo" => InspectPdfInfo(request, context),
-                    "pdfTextExtract" => ExtractPdfText(request, context),
-                    "pdfImageExtract" => ExtractPdfImages(request, context),
-                    "pdfToWordLite" => ConvertPdfToWordLite(request, context),
-                    "localOfficeConvert" => ExecuteLocalOfficeConvertTool(request, context),
-                    "pdfToWordLocal" => ConvertPdfToWordLocal(request, context),
-                    "officeToPdfLocal" => ConvertOfficeToPdfLocal(request, context),
-                    "batchOfficeConvert" => ConvertOfficeBatch(request, context),
-                    _ => throw new NotSupportedException("暂不支持该工具。")
-                };
+                string output = Handlers.GetRequired(request.ToolId).Execute(request, context);
 
                 return ToolResult.Ok(output);
             }
-            catch (Exception ex) when (ex is FormatException or CryptographicException or InvalidOperationException or ArgumentException or IOException or Win32Exception or CsvHelperException or OpenXmlPackageException)
+            catch (Exception ex) when (ex is FormatException or CryptographicException or InvalidOperationException or ArgumentException or IOException or Win32Exception or HttpRequestException or TaskCanceledException or CsvHelperException or OpenXmlPackageException)
             {
                 return ToolResult.Fail(ex.Message);
             }

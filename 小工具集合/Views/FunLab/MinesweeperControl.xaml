@@ -27,7 +27,7 @@
                     <CheckBox x:Name="ArcadeCheckBox" Content="街机模式" Foreground="#F1F1F1" VerticalAlignment="Center" Margin="0,0,12,0" Checked="ArcadeCheckBox_Changed" Unchecked="ArcadeCheckBox_Changed"/>
                     <ComboBox x:Name="DifficultyComboBox" Width="128" Height="30" Margin="0,0,8,0"/>
                     <ComboBox x:Name="BoardSizeComboBox" Width="92" Height="30" Margin="0,0,8,0"/>
-                    <Button Content="新局" Width="72" Height="30" Background="#007ACC" Foreground="White" BorderThickness="0" FontWeight="SemiBold" Cursor="Hand" Click="NewGameButton_Click"/>
+                    <Button Content="新局" Width="72" Height="30" Background="#68217A" Foreground="White" BorderThickness="0" FontWeight="SemiBold" Cursor="Hand" Click="NewGameButton_Click"/>
                 </StackPanel>
             </DockPanel>
         </Border>

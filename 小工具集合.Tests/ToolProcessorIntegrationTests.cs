@@ -1,5 +1,6 @@
 // 文件作用：覆盖 ToolProcessor 中不依赖真实外部服务的端到端工具执行路径。
 using System.Text.RegularExpressions;
+using System.Text;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
@@ -350,6 +351,52 @@ public sealed class ToolProcessorIntegrationTests
         Assert.Contains("Microsoft Office", result.Output, StringComparison.Ordinal);
         Assert.Contains("LibreOffice", result.Output, StringComparison.Ordinal);
         Assert.Contains("WPS", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void TextTranslator_UsesConfiguredProvider()
+    {
+        ToolResult result = Execute("textTranslator", "translate", "hello", new Dictionary<string, string>
+        {
+            ["provider"] = "Mock",
+            ["sourceLanguage"] = "英文",
+            ["targetLanguage"] = "中文"
+        });
+
+        Assert.True(result.Success, result.Message);
+        Assert.Contains("[中文] hello", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Mock", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void FileTranslator_WritesTranslatedTextCopy()
+    {
+        string root = CreateTempDirectory();
+        try
+        {
+            string input = Path.Combine(root, "note.txt");
+            string outDir = Path.Combine(root, "out");
+            Directory.CreateDirectory(outDir);
+            File.WriteAllText(input, "hello file", Encoding.UTF8);
+
+            ToolResult result = Execute("fileTranslator", "translate", string.Empty, new Dictionary<string, string>
+            {
+                ["inputFiles"] = input,
+                ["outputDirectory"] = outDir,
+                ["provider"] = "Mock",
+                ["sourceLanguage"] = "英文",
+                ["targetLanguage"] = "中文"
+            });
+
+            Assert.True(result.Success, result.Message);
+            string output = Assert.Single(Directory.GetFiles(outDir, "*_translated.txt"));
+            Assert.Equal("hello file", File.ReadAllText(input));
+            Assert.Contains("[中文] hello file", File.ReadAllText(output), StringComparison.Ordinal);
+        }
+        finally
+        {
+            DeleteDirectory(root);
+        }
     }
 
     private ToolResult Execute(

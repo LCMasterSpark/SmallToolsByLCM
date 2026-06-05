@@ -3,7 +3,8 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
@@ -11,10 +12,10 @@
     <NuGetAudit>false</NuGetAudit>
     <AssemblyName>LCM的工具箱</AssemblyName>
     <Product>LCM的工具箱</Product>
-    <Version>3.0.0</Version>
-    <AssemblyVersion>3.0.0.0</AssemblyVersion>
-    <FileVersion>3.0.0.0</FileVersion>
-    <InformationalVersion>3.0</InformationalVersion>
+    <Version>3.1.0</Version>
+    <AssemblyVersion>3.1.0.0</AssemblyVersion>
+    <FileVersion>3.1.0.0</FileVersion>
+    <InformationalVersion>3.1.0</InformationalVersion>
     <ApplicationIcon>Assets\AppIcon.ico</ApplicationIcon>
   </PropertyGroup>
 
@@ -28,6 +29,9 @@
     <Using Remove="System.Windows.Forms" />
     <Resource Include="Assets\AppIcon.ico" />
     <Resource Include="Assets\Marisa.gif" />
+    <Resource Include="Assets\Sounds\KenneyUI\*.wav" />
+    <Resource Include="Assets\Sounds\KenneyUI\LICENSE-Kenney.txt" />
+    <Resource Include="Assets\Sounds\KenneyUI\NOTICE.md" />
     <PackageReference Include="MahApps.Metro" Version="2.4.11" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
   </ItemGroup>

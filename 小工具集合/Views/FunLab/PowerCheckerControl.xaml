@@ -16,7 +16,7 @@
                     <TextBlock Text="POWER CHECKER" Foreground="#F1F1F1" FontSize="24" FontWeight="SemiBold"/>
                     <TextBlock Text="LCMasterSpark 高精度电量存在性判定引擎" Margin="0,4,0,0" Foreground="#969696" FontSize="13"/>
                 </StackPanel>
-                <Border DockPanel.Dock="Right" Background="#007ACC" Padding="10,6" VerticalAlignment="Center">
+                <Border DockPanel.Dock="Right" Background="#68217A" Padding="10,6" VerticalAlignment="Center">
                     <TextBlock Text="FUN LAB" Foreground="White" FontWeight="SemiBold"/>
                 </Border>
             </DockPanel>
@@ -62,7 +62,7 @@
                              Maximum="100"
                              Value="0"
                              Background="#1F1F1F"
-                             Foreground="#007ACC"/>
+                             Foreground="#B37AC4"/>
                 <TextBlock x:Name="StallText"
                            Grid.Row="1"
                            Text=""
@@ -81,7 +81,7 @@
                         Content="开始检测"
                         Width="132"
                         Height="34"
-                        Background="#007ACC"
+                        Background="#68217A"
                         Foreground="White"
                         BorderThickness="0"
                         FontWeight="SemiBold"
