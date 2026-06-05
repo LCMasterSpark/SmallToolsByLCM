@@ -21,6 +21,37 @@ public sealed class ToolCatalogTests
     }
 
     [Fact]
+    public void OfficeHelperGroup_ContainsFirstWaveTools()
+    {
+        var officeGroup = Assert.Single(ToolCatalog.Groups, group => group.Name == "OfficeHelper");
+        string[] expectedIds =
+        [
+            "csvCleaner",
+            "excelSheetMerge",
+            "wordTextExtract",
+            "officeImageExtract",
+            "wordBatchReplace",
+            "excelCsvTools",
+            "wordMerge",
+            "pptTextExtract",
+            "officeMetadata",
+            "pdfTools",
+            "localOfficeEngineCheck",
+            "localOfficeConvert"
+        ];
+
+        Assert.All(expectedIds, id =>
+        {
+            var tool = Assert.Single(officeGroup.Tools, item => item.Id == id);
+            Assert.False(tool.RequiresInput);
+            if (id != "localOfficeEngineCheck")
+            {
+                Assert.NotEmpty(tool.Parameters);
+            }
+        });
+    }
+
+    [Fact]
     public void Catalog_AllToolIdsAreUniqueAndOperationsExist()
     {
         var tools = ToolCatalog.AllTools;

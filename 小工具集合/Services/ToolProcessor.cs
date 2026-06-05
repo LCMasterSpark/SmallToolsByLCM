@@ -6,6 +6,8 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Xml;
+using CsvHelper;
+using DocumentFormat.OpenXml.Packaging;
 using 小工具集合.Models;
 
 namespace 小工具集合.Services;
@@ -89,6 +91,27 @@ public sealed partial class ToolProcessor : IToolProcessor
                 "imageConvert" => ConvertImages(request),
                 "fileHash" => HashFiles(request),
                 "imageCompress" => CompressImages(request),
+                "csvCleaner" => CleanCsvFiles(request),
+                "excelSheetMerge" => MergeExcelSheets(request),
+                "wordTextExtract" => ExtractWordText(request),
+                "officeImageExtract" => ExtractOfficeImages(request),
+                "wordBatchReplace" => ReplaceWordTextBatch(request),
+                "excelCsvTools" => ExecuteExcelCsvTool(request),
+                "excelToCsvBatch" => ExportExcelToCsvBatch(request),
+                "csvToExcel" => ConvertCsvToExcel(request),
+                "wordMerge" => MergeWordDocuments(request),
+                "pptTextExtract" => ExtractPptText(request),
+                "officeMetadata" => InspectOfficeMetadata(request),
+                "pdfTools" => ExecutePdfTool(request),
+                "pdfInfo" => InspectPdfInfo(request),
+                "pdfTextExtract" => ExtractPdfText(request),
+                "pdfImageExtract" => ExtractPdfImages(request),
+                "pdfToWordLite" => ConvertPdfToWordLite(request),
+                "localOfficeEngineCheck" => CheckLocalOfficeEngines(),
+                "localOfficeConvert" => ExecuteLocalOfficeConvertTool(request),
+                "pdfToWordLocal" => ConvertPdfToWordLocal(request),
+                "officeToPdfLocal" => ConvertOfficeToPdfLocal(request),
+                "batchOfficeConvert" => ConvertOfficeBatch(request),
                 "httpRequest" => SendHttpRequest(request),
                 "urlParams" => ParseUrlParameters(request.Input),
                 "headerFormat" => FormatHeaders(request.Input),
@@ -126,7 +149,7 @@ public sealed partial class ToolProcessor : IToolProcessor
 
             return ToolResult.Ok(output ?? string.Empty);
         }
-        catch (Exception ex) when (ex is FormatException or JsonException or XmlException or CryptographicException or InvalidOperationException or ArgumentException or IOException or Win32Exception or HttpRequestException)
+        catch (Exception ex) when (ex is FormatException or JsonException or XmlException or CryptographicException or InvalidOperationException or ArgumentException or IOException or Win32Exception or HttpRequestException or CsvHelperException or OpenXmlPackageException)
         {
             return ToolResult.Fail(ex.Message);
         }
@@ -136,7 +159,7 @@ public sealed partial class ToolProcessor : IToolProcessor
     {
         // 大多数工具都是短小的 CPU/字符串操作，可以复用同步执行路径。
         // 批量文件工具单独分支处理，便于在队列文件之间暂停。
-        if (request.ToolId is not ("fileEncode" or "mp4ToMp3" or "imageConvert" or "fileHash" or "imageCompress"))
+        if (request.ToolId is not ("fileEncode" or "mp4ToMp3" or "imageConvert" or "fileHash" or "imageCompress" or "csvCleaner" or "excelSheetMerge" or "wordTextExtract" or "officeImageExtract" or "wordBatchReplace" or "excelCsvTools" or "excelToCsvBatch" or "csvToExcel" or "wordMerge" or "pptTextExtract" or "officeMetadata" or "pdfTools" or "pdfInfo" or "pdfTextExtract" or "pdfImageExtract" or "pdfToWordLite" or "localOfficeConvert" or "pdfToWordLocal" or "officeToPdfLocal" or "batchOfficeConvert"))
         {
             return Task.Run(() => Execute(request));
         }
@@ -152,16 +175,69 @@ public sealed partial class ToolProcessor : IToolProcessor
                     "imageConvert" => ConvertImages(request, context),
                     "fileHash" => HashFiles(request, context),
                     "imageCompress" => CompressImages(request, context),
+                    "csvCleaner" => CleanCsvFiles(request, context),
+                    "excelSheetMerge" => MergeExcelSheets(request, context),
+                    "wordTextExtract" => ExtractWordText(request, context),
+                    "officeImageExtract" => ExtractOfficeImages(request, context),
+                    "wordBatchReplace" => ReplaceWordTextBatch(request, context),
+                    "excelCsvTools" => ExecuteExcelCsvTool(request, context),
+                    "excelToCsvBatch" => ExportExcelToCsvBatch(request, context),
+                    "csvToExcel" => ConvertCsvToExcel(request, context),
+                    "wordMerge" => MergeWordDocuments(request, context),
+                    "pptTextExtract" => ExtractPptText(request, context),
+                    "officeMetadata" => InspectOfficeMetadata(request, context),
+                    "pdfTools" => ExecutePdfTool(request, context),
+                    "pdfInfo" => InspectPdfInfo(request, context),
+                    "pdfTextExtract" => ExtractPdfText(request, context),
+                    "pdfImageExtract" => ExtractPdfImages(request, context),
+                    "pdfToWordLite" => ConvertPdfToWordLite(request, context),
+                    "localOfficeConvert" => ExecuteLocalOfficeConvertTool(request, context),
+                    "pdfToWordLocal" => ConvertPdfToWordLocal(request, context),
+                    "officeToPdfLocal" => ConvertOfficeToPdfLocal(request, context),
+                    "batchOfficeConvert" => ConvertOfficeBatch(request, context),
                     _ => throw new NotSupportedException("暂不支持该工具。")
                 };
 
                 return ToolResult.Ok(output);
             }
-            catch (Exception ex) when (ex is FormatException or CryptographicException or InvalidOperationException or ArgumentException or IOException or Win32Exception)
+            catch (Exception ex) when (ex is FormatException or CryptographicException or InvalidOperationException or ArgumentException or IOException or Win32Exception or CsvHelperException or OpenXmlPackageException)
             {
                 return ToolResult.Fail(ex.Message);
             }
         });
+    }
+
+    private static string ExecuteExcelCsvTool(ToolRequest request, ToolExecutionContext? context = null)
+    {
+        return request.OperationId switch
+        {
+            "excelToCsv" => ExportExcelToCsvBatch(request, context),
+            "csvToExcel" => ConvertCsvToExcel(request, context),
+            _ => throw new NotSupportedException("不支持的 Excel/CSV 操作。")
+        };
+    }
+
+    private static string ExecutePdfTool(ToolRequest request, ToolExecutionContext? context = null)
+    {
+        return request.OperationId switch
+        {
+            "info" => InspectPdfInfo(request, context),
+            "text" => ExtractPdfText(request, context),
+            "images" => ExtractPdfImages(request, context),
+            "wordLite" => ConvertPdfToWordLite(request, context),
+            _ => throw new NotSupportedException("不支持的 PDF 操作。")
+        };
+    }
+
+    private static string ExecuteLocalOfficeConvertTool(ToolRequest request, ToolExecutionContext? context = null)
+    {
+        return request.OperationId switch
+        {
+            "pdfToWord" => ConvertPdfToWordLocal(request, context),
+            "officeToPdf" => ConvertOfficeToPdfLocal(request, context),
+            "batch" => ConvertOfficeBatch(request, context),
+            _ => throw new NotSupportedException("不支持的本机转换操作。")
+        };
     }
 
 }

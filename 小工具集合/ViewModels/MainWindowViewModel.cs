@@ -187,7 +187,7 @@ public sealed class MainWindowViewModel : ObservableObject
 
     public bool IsStandardTool => !HasInteractiveView;
 
-    public bool IsPausableTool => SelectedTool.Id is "fileEncode" or "mp4ToMp3" or "imageConvert" or "fileHash" or "imageCompress";
+    public bool IsPausableTool => SelectedTool.Id is "fileEncode" or "mp4ToMp3" or "imageConvert" or "fileHash" or "imageCompress" or "csvCleaner" or "excelSheetMerge" or "wordTextExtract" or "officeImageExtract" or "wordBatchReplace" or "excelCsvTools" or "excelToCsvBatch" or "csvToExcel" or "wordMerge" or "pptTextExtract" or "officeMetadata" or "pdfTools" or "pdfInfo" or "pdfTextExtract" or "pdfImageExtract" or "pdfToWordLite" or "localOfficeConvert" or "pdfToWordLocal" or "officeToPdfLocal" or "batchOfficeConvert";
 
     // 文件队列即使尚未开始执行也视为待处理工作，
     // 避免关闭程序时误丢已经准备好的批处理列表。
